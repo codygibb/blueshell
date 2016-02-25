@@ -49,7 +49,7 @@ stmt:
   | x=ID; DEF; e=expr { Def (x, e) }
   | x=ID; ASGN; e=expr { Asgn (x, e) }
   | FUNC; f=ID; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE
-      { Def (f, Lambda (l, b)) }
+      { Def (f, Func (l, b)) }
   | PRINT; e=expr { Print e }
   | RETURN; e=expr { Return e }
   | IF; e=expr; LBRACE; tb=block; RBRACE; ELSE; LBRACE; fb=block; RBRACE
@@ -68,7 +68,7 @@ expr:
   | s=STR { Str (String.sub s 1 ((String.length s) - 2)) }
   | x=ID { Id x }
   | LPAREN; e=expr; RPAREN { e }
-  | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Lambda (l, b) }
+  | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
   | e=expr; LPAREN; l=expr_list; RPAREN { Call (e, l) }
   | e1=expr; PLUS; e2=expr { Bin_op (Add, e1, e2) }
   | e1=expr; MINUS; e2=expr { Bin_op (Sub, e1, e2) }

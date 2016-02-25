@@ -115,7 +115,7 @@ let rec eval_expr env = function
             end
       | _ -> raise err
       end
-  | Ast.Lambda (arg_ids, block) ->
+  | Ast.Func (arg_ids, block) ->
       Prim.Closure ((Env.extend env), arg_ids, block)
   | Ast.Call (e, arg_exprs) ->
       let (c_env, arg_ids, body) = match eval_expr env e with
