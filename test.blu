@@ -1,29 +1,7 @@
-x := 5
-func f(n) {
-	if n > 3 {
-		print n
-		return true
-	} else {
-		print 7
-	}
-	return false
+func f(n, g) {
+	return g(n + 1)
 }
-func g(n) {
-	print "g was called"
-	return false
-}
-if true || g(5) {
-	print "?"
-}
-d := f(5) && f(1)
-y := 10
-x = 9
-b := 11 + 9 - f(1) + 5 * 8 + 9
-if b {
-	print "bye"
-		if b && x > 5 {
-		print "yo"
-	}
-} else {
-	print "hey"
-}
+
+print f((1 + 5 * 2), func(n) {
+	return n + 2
+})

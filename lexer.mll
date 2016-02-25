@@ -18,13 +18,14 @@ let digit = ['0'-'9']
 let integer = '-'? digit+
 let letter = ['a'-'z' 'A'-'Z']
 let id = (letter | '_') (letter | digit | '_')*
-let str = '"' [^'"']* '"'
+let str = ('"' [^'"']* '"') | ('\'' [^'\'']* '\'')
 let bool_ = "true" | "false"
+let comment = "#" [^'\n']*
 
 rule read = parse
-  | '\n' { next_line lexbuf; NEWLINE (lexbuf.lex_start_p.pos_lnum) }
+  | comment { read lexbuf }
   | whitespace { read lexbuf }
-  | "lambda" { LAMBDA }
+  | '\n' { next_line lexbuf; NEWLINE (lexbuf.lex_start_p.pos_lnum) }
   | "func" { FUNC }
   | "print" { PRINT }
   | "return" { RETURN }

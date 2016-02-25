@@ -1,5 +1,7 @@
 open Printf
 
+exception Violated_invariant of string
+
 exception Exec_error of string
 
 exception Tracked_exec_error of int * string
@@ -10,7 +12,7 @@ module Prim = struct
     | Int of int
     | Bool of bool
     | Str of string
-    | Closure of (t Env.t * Ast.id list * Ast.block)
+    | Closure of (t Env.t * Ast.id list * Ast.stmt_list)
 
   let to_str = function
     | Unit -> "unit"
@@ -113,10 +115,10 @@ let rec eval_expr env = function
             end
       | _ -> raise err
       end
-  | Ast.Lambda (arg_names, block) ->
-      Prim.Closure ((Env.extend env), arg_names, block)
+  | Ast.Lambda (arg_ids, block) ->
+      Prim.Closure ((Env.extend env), arg_ids, block)
   | Ast.Call (e, arg_exprs) ->
-      let (c_env, arg_names, body) = match eval_expr env e with
+      let (c_env, arg_ids, body) = match eval_expr env e with
       | Prim.Closure c -> c
       | _ -> raise (Exec_error "cannot call non-function")
       in
@@ -130,35 +132,30 @@ let rec eval_expr env = function
       in
       let arg_vals = List.map (eval_expr env) arg_exprs in
       let c_env' = Env.extend c_env in
-      bind_args c_env' (arg_names, arg_vals);
+      bind_args c_env' (arg_ids, arg_vals);
       begin match eval_block c_env' body with
       | Step.Return v -> v
       | Step.Next -> Prim.Unit
       end
 
-and eval_block env b =
+and eval_block env sl =
   let env' = Env.extend env in
-  let rec step = function
-    | Ast.B_stmt (lnum_opt, s, b') ->
-        let aux () =
-          begin match exec_stmt env' s with
-          | Step.Next -> step b'
-          | Step.Return v -> Step.Return v
-          end
-        in
-        begin match lnum_opt with
-        | Some lnum -> track_exn lnum aux
-        (* No line-number information because block statement is
-         * in-lined. Do not protect call to aux from exceptions,
-         * so the exception propogates up to the original program
-         * statement. *)
-        | None -> aux ()
-        end
-    | Ast.B_end -> Step.Next
+  let rec step sl =
+    let aux s sl' =
+      match exec_stmt env' s with
+      | Step.Next -> step sl'
+      | Step.Return v -> Step.Return v
+    in
+    match sl with
+    | [] -> Step.Next
+      (* No line number info (block inlined), cannot track exception *)
+    | (None, s) :: sl' -> aux s sl'
+    | (Some lnum, s) :: sl' -> track_exn lnum (fun () -> aux s sl')
   in
-  step b
+  step sl
 
 and exec_stmt env = function
+  | Ast.Expr e -> let _ = eval_expr env e in Step.Next
   | Ast.Def (id, e) -> Env.bind env id (eval_expr env e); Step.Next
   | Ast.Asgn (id, e) -> Env.update env id (eval_expr env e); Step.Next
   | Ast.Print e ->
@@ -174,15 +171,17 @@ and exec_stmt env = function
       | _ -> raise (Exec_error "condition must be boolean")
       end
 
-and eval_prog p =
+and eval_prog sl =
   let env = Env.create () in
   let rec step = function
-    | Ast.P_stmt (lnum, s, p') ->
-        track_exn lnum (fun () -> 
+    | [] -> ()
+    | (None, _) :: _ ->
+        raise (Violated_invariant "main program statement has no line number")
+    | (Some lnum, s) :: sl' ->
+        track_exn lnum (fun () ->
           match exec_stmt env s with
-          | Step.Next -> step p'
+          | Step.Next -> step sl'
           | Step.Return _ -> raise (Exec_error "cannot return from main"))
-    | Ast.P_exit -> ()
   in
-  step p
+  step sl
 
