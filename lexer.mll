@@ -34,7 +34,9 @@ rule read = parse
   | bool_ { BOOL ((lexeme lexbuf) = "true") }
   | integer { INT (int_of_string (lexeme lexbuf)) }
   | id { ID (lexeme lexbuf) }
-  | str { STR (lexeme lexbuf) }
+  | str (* Strip quote characters at end of string. *)
+    { let s = lexeme lexbuf in
+      STR (String.sub s 1 ((String.length s) - 2)) }
   | "+" { PLUS }
   | "-" { MINUS }
   | "*" { TIMES }

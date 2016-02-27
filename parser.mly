@@ -64,8 +64,7 @@ block:
 expr:
   | i=INT { Int i }
   | b=BOOL { Bool b }
-    (* Strip quote characters *)
-  | s=STR { Str (String.sub s 1 ((String.length s) - 2)) }
+  | s=STR { Str s }
   | x=ID { Id x }
   | LPAREN; e=expr; RPAREN { e }
   | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
