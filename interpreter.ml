@@ -185,8 +185,11 @@ and exec_prog sl =
   in
   step sl
 
-let run file =
+let get_lexbuf file =
   let lexbuf = file |> open_in |> Lexing.from_channel in
   let open Lexing in
   lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file };
+  lexbuf
+
+let run lexbuf =
   exec_prog (Parser.prog Lexer.read lexbuf)

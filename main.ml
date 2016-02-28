@@ -51,8 +51,9 @@ let exec_err msg file lnum =
 
 let () =
   let file = if Array.length Sys.argv != 2 then usage () else Sys.argv.(1) in
+  let lexbuf = Interpreter.get_lexbuf file in
   try
-    Interpreter.run file
+    Interpreter.run lexbuf
   with
   | Lexer.Unexpected_char i -> parse_err "Unexpected character" lexbuf
   | Parser.Error -> parse_err "Syntax error" lexbuf

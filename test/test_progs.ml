@@ -33,7 +33,7 @@ let _  =
       (* Re-direct stdout to actual_outfile. *)
       Unix.dup2 (Unix.descr_of_out_channel actual_oc) Unix.stdout;
 
-      Interpreter.run infile;
+      Interpreter.run (Interpreter.get_lexbuf infile);
       flush stdout;
       close_out actual_oc;
 
