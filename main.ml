@@ -1,8 +1,5 @@
 open Printf
 
-let interpret lexbuf =
-  Interpreter.eval_prog (Parser.prog Lexer.read lexbuf)
-
 let usage () =
   printf "Usage: %s [filename]\n" Sys.argv.(0);
   exit 1
@@ -54,11 +51,8 @@ let exec_err msg file lnum =
 
 let () =
   let file = if Array.length Sys.argv != 2 then usage () else Sys.argv.(1) in
-  let lexbuf = file |> open_in |> Lexing.from_channel in
-  let open Lexing in
-  lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file };
   try
-    interpret lexbuf
+    Interpreter.run file
   with
   | Lexer.Unexpected_char i -> parse_err "Unexpected character" lexbuf
   | Parser.Error -> parse_err "Syntax error" lexbuf

@@ -1,0 +1,6 @@
+func f(a, b) {
+	print a
+	print b
+	return a + b
+}
+print f(1, 2)

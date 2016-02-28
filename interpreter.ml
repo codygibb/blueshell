@@ -133,12 +133,12 @@ let rec eval_expr env = function
       let arg_vals = List.map (eval_expr env) arg_exprs in
       let c_env' = Env.extend c_env in
       bind_args c_env' (arg_ids, arg_vals);
-      begin match eval_block c_env' body with
+      begin match exec_block c_env' body with
       | Step.Return v -> v
       | Step.Next -> Prim.Unit
       end
 
-and eval_block env sl =
+and exec_block env sl =
   let env' = Env.extend env in
   let rec step sl =
     let aux s sl' =
@@ -167,11 +167,11 @@ and exec_stmt env = function
   | Ast.Return e -> Step.Return (eval_expr env e)
   | Ast.If_then_else (cond_e, true_b, false_b) ->
       begin match eval_expr env cond_e with
-      | Prim.Bool b -> eval_block env (if b then true_b else false_b)
+      | Prim.Bool b -> exec_block env (if b then true_b else false_b)
       | _ -> raise (Exec_error "condition must be boolean")
       end
 
-and eval_prog sl =
+and exec_prog sl =
   let env = Env.create () in
   let rec step = function
     | [] -> ()
@@ -185,3 +185,8 @@ and eval_prog sl =
   in
   step sl
 
+let run file =
+  let lexbuf = file |> open_in |> Lexing.from_channel in
+  let open Lexing in
+  lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file };
+  exec_prog (Parser.prog Lexer.read lexbuf)
