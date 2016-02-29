@@ -1,0 +1,17 @@
+i := 123
+f := 1.23
+s := "123"
+
+print (float) (i * 92)
+print (string) (i * 92) + " is the answer"
+print (string) true + " should be true"
+if ((bool) "true") {
+  print "this should be printed"
+} else {
+  print "this should not be printed"
+}
+print (int) f
+
+# test precedence
+print (float) i * f
+

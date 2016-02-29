@@ -16,6 +16,7 @@ and expr =
   | Bool of bool
   | Float of float
   | Str of string
+  | Cast of cast_types * expr
   | Id of id
   | Bin_op of binop * expr * expr
   | Not of expr
@@ -35,6 +36,12 @@ and opasgn =
   | BoolAndAsgn | BoolOrAsgn
   | BitAndAsgn | BitOrAsgn | BitXorAsgn | LeftShiftAsgn | RightShiftAsgn
 
+and cast_types =
+  | IntCast
+  | FloatCast
+  | StrCast
+  | BoolCast
+
 let to_str = function
   | Add -> "+"
   | Sub -> "-"
@@ -52,3 +59,9 @@ let to_str = function
   | BitXor -> "^"
   | LeftShift -> "<<"
   | RightShift -> ">>"
+
+let cast_type_to_str = function
+  | IntCast -> "int"
+  | BoolCast -> "bool"
+  | FloatCast -> "float"
+  | StrCast -> "string"

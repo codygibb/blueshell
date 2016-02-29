@@ -7,6 +7,7 @@
 %token <float> FLOAT
 %token <string> STR
 %token <string> ID 
+%token BOOLCAST INTCAST FLOATCAST STRCAST
 %token ADDASGN SUBASGN MULTASGN DIVASGN MODASGN BOOLANDASGN BOOLORASGN BITANDASGN BITORASGN BITXORASGN LEFTSHIFTASGN RIGHTSHIFTASGN
 %token PLUS MINUS TIMES DIV MOD
 %token EQ NE LT GT LTE GTE
@@ -42,6 +43,7 @@
 %left DIV TIMES
 
 %right NOT
+%right INTCAST FLOATCAST STRCAST BOOLCAST
 
 %start <Ast.stmt_list> prog
 
@@ -84,6 +86,7 @@ expr:
   | f=FLOAT { Float f }
   | s=STR { Str s }
   | x=ID { Id x }
+  | t=typecast; e=expr %prec INTCAST { Cast(t, e) }
   | LPAREN; e=expr; RPAREN { e }
   | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
   | e=expr; LPAREN; l=expr_list; RPAREN { Call (e, l) }
@@ -125,6 +128,11 @@ expr_op_asgn:
   | BOOLANDASGN { "And" }
   | BOOLORASGN { "Or" }
 
+typecast:
+  | BOOLCAST { BoolCast }
+  | INTCAST { IntCast }
+  | FLOATCAST { FloatCast }
+  | STRCAST { StrCast }
 
 id_list:
   | l=nonempty_id_list { l }
