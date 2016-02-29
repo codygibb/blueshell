@@ -14,6 +14,7 @@ and stmt =
 and expr =
   | Int of int
   | Bool of bool
+  | Float of float
   | Str of string
   | Id of id
   | Bin_op of binop * expr * expr

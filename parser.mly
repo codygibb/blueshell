@@ -4,6 +4,7 @@
 
 %token <int> INT
 %token <bool> BOOL
+%token <float> FLOAT
 %token <string> STR
 %token <string> ID 
 %token ADDASGN SUBASGN MULTASGN DIVASGN MODASGN BOOLANDASGN BOOLORASGN BITANDASGN BITORASGN BITXORASGN LEFTSHIFTASGN RIGHTSHIFTASGN
@@ -80,6 +81,7 @@ block:
 expr:
   | i=INT { Int i }
   | b=BOOL { Bool b }
+  | f=FLOAT { Float f }
   | s=STR { Str s }
   | x=ID { Id x }
   | LPAREN; e=expr; RPAREN { e }

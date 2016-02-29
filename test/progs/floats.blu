@@ -1,0 +1,15 @@
+a := 12.4131
+b := 2.34
+
+print a
+print b
+print a + b
+print a - b
+print a * b
+print a / b
+print a > b
+print a < b
+print a >= b
+print a <= b
+print a == b
+print a != b

@@ -11,6 +11,7 @@ module Prim = struct
     | Unit
     | Int of int
     | Bool of bool
+    | Float of float
     | Str of string
     | Closure of (t Env.t * Ast.id list * Ast.stmt_list)
 
@@ -18,6 +19,7 @@ module Prim = struct
     | Unit -> "unit"
     | Int _ -> "int"
     | Bool _ -> "bool"
+    | Float _ -> "float"
     | Str _ -> "string"
     | Closure _ -> "function"
 end
@@ -43,6 +45,7 @@ let track_exn lnum f =
 let rec eval_expr env = function
   | Ast.Int i -> Prim.Int i
   | Ast.Bool b -> Prim.Bool b
+  | Ast.Float f -> Prim.Float f
   | Ast.Str s -> Prim.Str s
   | Ast.Id id -> Env.lookup env id
   | Ast.Bin_op (binop, e1, e2) ->
@@ -68,6 +71,23 @@ let rec eval_expr env = function
           | Ast.LeftShift -> Prim.Int (i1 lsl i2)
           | Ast.RightShift -> Prim.Int (i1 lsr i2)
           | _ -> raise (Exec_error (sprintf "cannot apply %s to ints"
+                                                   (Ast.to_str binop)))
+          end
+      | Prim.Float f1, Prim.Float f2 ->
+          begin match binop with
+          | Ast.Add -> Prim.Float (f1 +. f2)
+          | Ast.Sub -> Prim.Float (f1 -. f2)
+          | Ast.Mult -> Prim.Float (f1 *. f2)
+          | Ast.Div ->
+              if f2 = 0.0 then raise (Exec_error "cannot divide by zero")
+              else Prim.Float (f1 /. f2)
+          | Ast.Eq -> Prim.Bool (f1 = f2)
+          | Ast.Ne -> Prim.Bool (f1 != f2)
+          | Ast.Lt -> Prim.Bool (f1 < f2)
+          | Ast.Gt -> Prim.Bool (f1 > f2)
+          | Ast.Lte -> Prim.Bool (f1 <= f2)
+          | Ast.Gte -> Prim.Bool (f1 >= f2)
+          | _ -> raise (Exec_error (sprintf "cannot apply %s to floats"
                                                    (Ast.to_str binop)))
           end
       | Prim.Bool b1, Prim.Bool b2 -> 
@@ -177,6 +197,7 @@ and exec_stmt env = function
       | Prim.Int i -> printf "%d\n" i; Step.Next
       | Prim.Str s -> printf "%s\n" s; Step.Next
       | Prim.Bool b -> printf "%B\n" b; Step.Next
+      | Prim.Float f -> printf "%f\n" f; Step.Next
       | _ -> raise (Exec_error "cannot print type")
       end
   | Ast.Return e -> Step.Return (eval_expr env e)
