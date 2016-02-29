@@ -41,6 +41,7 @@ rule read = parse
   | "-" { MINUS }
   | "*" { TIMES }
   | "/" { DIV }
+  | "%" { MOD }
   | "==" { EQ }
   | "!=" { NE }
   | "<" { LT }
@@ -50,12 +51,29 @@ rule read = parse
   | "!" { NOT }
   | "&&" { AND }
   | "||" { OR }
+  | "&" { BITAND }
+  | "|" { BITOR }
+  | "^" { BITXOR }
+  | "<<" { LEFTSHIFT }
+  | ">>" { RIGHTSHIFT }
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "{" { LBRACE }
   | "}" { RBRACE }
   | ":=" { DEF }
   | "=" { ASGN }
+  | "+=" { ADDASGN }
+  | "-=" { SUBASGN }
+  | "*=" { MULTASGN }
+  | "/=" { DIVASGN }
+  | "%=" { MODASGN }
+  | "&&=" { BOOLANDASGN }
+  | "||=" { BOOLORASGN }
+  | "&=" { BITANDASGN }
+  | "|=" { BITORASGN }
+  | "^=" { BITXORASGN }
+  | "<<=" { LEFTSHIFTASGN }
+  | ">>=" { RIGHTSHIFTASGN }
   | "," { COMMA }
   | eof { EOF }
   | _ { raise (Unexpected_char (lexeme_start lexbuf)) }

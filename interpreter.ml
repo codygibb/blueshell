@@ -55,14 +55,20 @@ let rec eval_expr env = function
           | Ast.Div ->
               if i2 = 0 then raise (Exec_error "cannot divide by zero")
               else Prim.Int (i1 / i2)
+          | Ast.Mod -> Prim.Int (i1 mod i2)
           | Ast.Eq -> Prim.Bool (i1 = i2)
           | Ast.Ne -> Prim.Bool (i1 != i2)
           | Ast.Lt -> Prim.Bool (i1 < i2)
           | Ast.Gt -> Prim.Bool (i1 > i2)
           | Ast.Lte -> Prim.Bool (i1 <= i2)
           | Ast.Gte -> Prim.Bool (i1 >= i2)
-          (*| _ -> raise (Exec_error (sprintf "cannot apply %s to ints"*)
-                                                   (*(Ast.to_str binop)))*)
+          | Ast.BitAnd -> Prim.Int (i1 land i2)
+          | Ast.BitOr -> Prim.Int (i1 lor i2)
+          | Ast.BitXor -> Prim.Int (i1 lxor i2)
+          | Ast.LeftShift -> Prim.Int (i1 lsl i2)
+          | Ast.RightShift -> Prim.Int (i1 lsr i2)
+          | _ -> raise (Exec_error (sprintf "cannot apply %s to ints"
+                                                   (Ast.to_str binop)))
           end
       | Prim.Bool b1, Prim.Bool b2 -> 
           begin match binop with
@@ -162,6 +168,7 @@ and exec_stmt env = function
       begin match eval_expr env e with
       | Prim.Int i -> printf "%d\n" i; Step.Next
       | Prim.Str s -> printf "%s\n" s; Step.Next
+      | Prim.Bool b -> printf "%B\n" b; Step.Next
       | _ -> raise (Exec_error "cannot print type")
       end
   | Ast.Return e -> Step.Return (eval_expr env e)

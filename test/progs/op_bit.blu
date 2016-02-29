@@ -1,0 +1,7 @@
+a := 123
+
+print a & 17
+print a | 29
+print a ^ 873
+print a << 2
+print a >> 4

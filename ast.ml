@@ -9,6 +9,7 @@ and stmt =
   | Print of expr
   | Return of expr
   | If_then_else of expr * stmt_list * stmt_list
+  | Op_Asgn of id * opasgn * expr
 
 and expr =
   | Int of int
@@ -23,17 +24,29 @@ and expr =
   | Call of expr * expr list
 
 and binop =
-  | Add | Sub | Mult | Div
+  | Add | Sub | Mult | Div | Mod
   | Eq | Ne | Lt | Gt | Lte | Gte
+  | BitAnd | BitOr | BitXor | LeftShift | RightShift
+
+and opasgn =
+  | AddAsgn | SubAsgn | MultAsgn | DivAsgn | ModAsgn
+  | BoolAndAsgn | BoolOrAsgn
+  | BitAndAsgn | BitOrAsgn | BitXorAsgn | LeftShiftAsgn | RightShiftAsgn
 
 let to_str = function
   | Add -> "+"
   | Sub -> "-"
   | Mult -> "*"
   | Div -> "/"
+  | Mod -> "%"
   | Eq -> "=="
   | Ne -> "!="
   | Lt -> "<"
   | Gt -> ">"
   | Lte -> "<="
   | Gte -> ">="
+  | BitAnd -> "&"
+  | BitOr -> "|"
+  | BitXor -> "^"
+  | LeftShift -> "<<"
+  | RightShift -> ">>"
