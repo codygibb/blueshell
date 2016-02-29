@@ -75,5 +75,7 @@ rule read = parse
   | "<<=" { LEFTSHIFTASGN }
   | ">>=" { RIGHTSHIFTASGN }
   | "," { COMMA }
+  | ":" { COLON }
+  | "?" { QUESTIONMARK }
   | eof { EOF }
   | _ { raise (Unexpected_char (lexeme_start lexbuf)) }

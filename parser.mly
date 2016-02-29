@@ -20,23 +20,27 @@
 %token RETURN
 %token IF ELSE
 %token COMMA
+%token COLON
+%token QUESTIONMARK
 %token <int> NEWLINE
 %token EOF
 
-%nonassoc EQ NE
 
-%nonassoc LT GT LTE GTE
-
+%right QUESTIONMARK COLON
 %left OR
 %left AND
-%right NOT
-
 %left BITOR
 %left BITXOR
 %left BITAND
+
+%nonassoc EQ NE
+%nonassoc LT GT LTE GTE
+
 %left LEFTSHIFT RIGHTSHIFT
 %left PLUS MINUS
 %left DIV TIMES
+
+%right NOT
 
 %start <Ast.stmt_list> prog
 
@@ -100,6 +104,7 @@ expr:
   | NOT; e=expr { Not e }
   | e1=expr; AND; e2=expr { And (e1, e2) }
   | e1=expr; OR; e2=expr { Or (e1, e2) }
+  | e1=expr; QUESTIONMARK; e2=expr; COLON e3=expr { Ternary (e1, e2, e3) }
 
 
 bin_op_asgn:

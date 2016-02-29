@@ -20,6 +20,7 @@ and expr =
   | Not of expr
   | And of expr * expr
   | Or of expr * expr
+  | Ternary of expr * expr * expr
   | Func of id list * stmt_list
   | Call of expr * expr list
 

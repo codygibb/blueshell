@@ -121,6 +121,14 @@ let rec eval_expr env = function
             end
       | _ -> raise err
       end
+  | Ast.Ternary (e1, e2, e3) ->
+      let err = Exec_error "cannot apply ternary to non-bool" in
+      begin match eval_expr env e1 with
+      | Prim.Bool b1 ->
+          if b1 then eval_expr env e2
+          else eval_expr env e3
+      | _ -> raise err
+      end
   | Ast.Func (arg_ids, block) ->
       Prim.Closure ((Env.extend env), arg_ids, block)
   | Ast.Call (e, arg_exprs) ->
