@@ -1,0 +1,5 @@
+x := 5
+func f(x) {
+	return x
+}
+print f(6)
