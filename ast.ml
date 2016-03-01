@@ -64,4 +64,4 @@ let cast_type_to_str = function
   | IntCast -> "int"
   | BoolCast -> "bool"
   | FloatCast -> "float"
-  | StrCast -> "string"
+  | StrCast -> "str"

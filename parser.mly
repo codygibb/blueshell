@@ -27,10 +27,11 @@
 %token <int> NEWLINE
 %token EOF
 
-
 %right QUESTIONMARK COLON
+
 %left OR
 %left AND
+
 %left BITOR
 %left BITXOR
 %left BITAND
@@ -43,7 +44,6 @@
 %left DIV TIMES
 
 %right NOT
-%right INTCAST FLOATCAST STRCAST BOOLCAST
 
 %start <Ast.stmt_list> prog
 
@@ -69,10 +69,8 @@ stmt:
       { If_then_else (e, tb, fb) }
   | IF; e=expr; LBRACE; b=block; RBRACE { If_then_else (e, b, []) }
   | x=ID; o=bin_op_asgn; e=expr { Asgn (x, Bin_op(o, Id x, e)) }
-  | x=ID; o=expr_op_asgn; e=expr { match o with
-                                    | "And" -> Asgn (x, And(Id x, e))
-                                    | "Or"  -> Asgn (x, Or(Id x, e))
-                                 }
+  | x=ID; BOOLANDASGN; e=expr { Asgn (x, And (Id x, e)) }
+  | x=ID; BOOLORASGN; e=expr { Asgn (x, Or (Id x, e)) }
 
 
 block:
@@ -86,7 +84,7 @@ expr:
   | f=FLOAT { Float f }
   | s=STR { Str s }
   | x=ID { Id x }
-  | t=typecast; e=expr %prec INTCAST { Cast(t, e) }
+  | t=typecast; LPAREN; e=expr; RPAREN { Cast(t, e) }
   | LPAREN; e=expr; RPAREN { e }
   | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
   | e=expr; LPAREN; l=expr_list; RPAREN { Call (e, l) }
@@ -123,10 +121,6 @@ bin_op_asgn:
   | BITXORASGN { BitXor }
   | LEFTSHIFTASGN { LeftShift }
   | RIGHTSHIFTASGN { RightShift }
-
-expr_op_asgn:
-  | BOOLANDASGN { "And" }
-  | BOOLORASGN { "Or" }
 
 typecast:
   | BOOLCAST { BoolCast }

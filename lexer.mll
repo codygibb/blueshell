@@ -32,6 +32,10 @@ rule read = parse
   | "return" { RETURN }
   | "if" { IF }
   | "else" { ELSE }
+  | "bool" { BOOLCAST }
+  | "int" { INTCAST }
+  | "float" { FLOATCAST }
+  | "str" { STRCAST }
   | bool_ { BOOL ((lexeme lexbuf) = "true") }
   | integer { INT (int_of_string (lexeme lexbuf)) }
   | float_ { FLOAT (float_of_string (lexeme lexbuf)) }
@@ -39,10 +43,6 @@ rule read = parse
     { let s = lexeme lexbuf in
       STR (String.sub s 1 ((String.length s) - 2)) }
   | id { ID (lexeme lexbuf) }
-  | "(bool)" { BOOLCAST }
-  | "(int)" { INTCAST }
-  | "(float)" { FLOATCAST }
-  | "(string)" { STRCAST }
   | "+" { PLUS }
   | "-" { MINUS }
   | "*" { TIMES }
