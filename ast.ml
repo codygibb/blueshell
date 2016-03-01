@@ -15,7 +15,7 @@ and expr =
   | Bool of bool
   | Float of float
   | Str of string
-  | Cast of cast_types * expr
+  | Cast of type_cast * expr
   | Id of id
   | Bin_op of binop * expr * expr
   | Not of expr
@@ -30,7 +30,7 @@ and binop =
   | Eq | Ne | Lt | Gt | Lte | Gte
   | Bit_and | Bit_or | Bit_xor | Left_shift | Right_shift
 
-and cast_types =
+and type_cast =
   | Int_cast
   | Float_cast
   | Str_cast
