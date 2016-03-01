@@ -4,10 +4,14 @@
 
 %token <int> INT
 %token <bool> BOOL
+%token <float> FLOAT
 %token <string> STR
 %token <string> ID 
-%token PLUS MINUS TIMES DIV
+%token BOOLCAST INTCAST FLOATCAST STRCAST
+%token ADDASGN SUBASGN MULTASGN DIVASGN MODASGN BOOLANDASGN BOOLORASGN BITANDASGN BITORASGN BITXORASGN LEFTSHIFTASGN RIGHTSHIFTASGN
+%token PLUS MINUS TIMES DIV MOD
 %token EQ NE LT GT LTE GTE
+%token BITAND BITOR BITXOR LEFTSHIFT RIGHTSHIFT
 %token NOT AND OR
 %token LPAREN RPAREN
 %token LBRACE RBRACE
@@ -18,19 +22,28 @@
 %token RETURN
 %token IF ELSE
 %token COMMA
+%token COLON
+%token QUESTIONMARK
 %token <int> NEWLINE
 %token EOF
 
-%nonassoc EQ NE
 
-%nonassoc LT GT LTE GTE
-
+%right QUESTIONMARK COLON
 %left OR
 %left AND
-%right NOT
+%left BITOR
+%left BITXOR
+%left BITAND
 
+%nonassoc EQ NE
+%nonassoc LT GT LTE GTE
+
+%left LEFTSHIFT RIGHTSHIFT
 %left PLUS MINUS
 %left DIV TIMES
+
+%right NOT
+%right INTCAST FLOATCAST STRCAST BOOLCAST
 
 %start <Ast.stmt_list> prog
 
@@ -55,6 +68,12 @@ stmt:
   | IF; e=expr; LBRACE; tb=block; RBRACE; ELSE; LBRACE; fb=block; RBRACE
       { If_then_else (e, tb, fb) }
   | IF; e=expr; LBRACE; b=block; RBRACE { If_then_else (e, b, []) }
+  | x=ID; o=bin_op_asgn; e=expr { Asgn (x, Bin_op(o, Id x, e)) }
+  | x=ID; o=expr_op_asgn; e=expr { match o with
+                                    | "And" -> Asgn (x, And(Id x, e))
+                                    | "Or"  -> Asgn (x, Or(Id x, e))
+                                 }
+
 
 block:
   | s=stmt { [(None, s)] }
@@ -64,8 +83,10 @@ block:
 expr:
   | i=INT { Int i }
   | b=BOOL { Bool b }
+  | f=FLOAT { Float f }
   | s=STR { Str s }
   | x=ID { Id x }
+  | t=typecast; e=expr %prec INTCAST { Cast(t, e) }
   | LPAREN; e=expr; RPAREN { e }
   | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
   | e=expr; LPAREN; l=expr_list; RPAREN { Call (e, l) }
@@ -73,15 +94,45 @@ expr:
   | e1=expr; MINUS; e2=expr { Bin_op (Sub, e1, e2) }
   | e1=expr; TIMES; e2=expr { Bin_op (Mult, e1, e2) }
   | e1=expr; DIV; e2=expr { Bin_op (Div, e1, e2) }
+  | e1=expr; MOD; e2=expr { Bin_op (Mod, e1, e2) }
   | e1=expr; EQ; e2=expr { Bin_op (Eq, e1, e2) }
   | e1=expr; NE; e2=expr { Bin_op (Ne, e1, e2) }
   | e1=expr; LT; e2=expr { Bin_op (Lt, e1, e2) }
   | e1=expr; GT; e2=expr { Bin_op (Gt, e1, e2) }
   | e1=expr; LTE; e2=expr { Bin_op (Lte, e1, e2) }
   | e1=expr; GTE; e2=expr { Bin_op (Gte, e1, e2) }
+  | e1=expr; BITAND; e2=expr { Bin_op (BitAnd, e1, e2) }
+  | e1=expr; BITOR; e2=expr { Bin_op (BitOr, e1, e2) }
+  | e1=expr; BITXOR; e2=expr { Bin_op (BitXor, e1, e2) }
+  | e1=expr; LEFTSHIFT; e2=expr { Bin_op (LeftShift, e1, e2) }
+  | e1=expr; RIGHTSHIFT; e2=expr { Bin_op (RightShift, e1, e2) }
   | NOT; e=expr { Not e }
   | e1=expr; AND; e2=expr { And (e1, e2) }
   | e1=expr; OR; e2=expr { Or (e1, e2) }
+  | e1=expr; QUESTIONMARK; e2=expr; COLON e3=expr { Ternary (e1, e2, e3) }
+
+
+bin_op_asgn:
+  | ADDASGN { Add }
+  | SUBASGN { Sub }
+  | MULTASGN { Mult }
+  | DIVASGN { Div }
+  | MODASGN { Mod }
+  | BITANDASGN { BitAnd }
+  | BITORASGN { BitOr }
+  | BITXORASGN { BitXor }
+  | LEFTSHIFTASGN { LeftShift }
+  | RIGHTSHIFTASGN { RightShift }
+
+expr_op_asgn:
+  | BOOLANDASGN { "And" }
+  | BOOLORASGN { "Or" }
+
+typecast:
+  | BOOLCAST { BoolCast }
+  | INTCAST { IntCast }
+  | FLOATCAST { FloatCast }
+  | STRCAST { StrCast }
 
 id_list:
   | l=nonempty_id_list { l }

@@ -1,0 +1,6 @@
+a := true
+b := false
+
+print a ? 4 : "hello"
+print b ? 4 : "hello"
+print 1 == 2 || "hello" == "hello" ? "print me" : "don't print me"

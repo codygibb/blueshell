@@ -16,6 +16,7 @@
 let whitespace = [' ' '\t']+
 let digit = ['0'-'9']
 let integer = '-'? digit+
+let float_ = '-'? digit* ['.']? digit+
 let letter = ['a'-'z' 'A'-'Z']
 let id = (letter | '_') (letter | digit | '_')*
 let str = ('"' [^'"']* '"') | ('\'' [^'\'']* '\'')
@@ -33,14 +34,20 @@ rule read = parse
   | "else" { ELSE }
   | bool_ { BOOL ((lexeme lexbuf) = "true") }
   | integer { INT (int_of_string (lexeme lexbuf)) }
-  | id { ID (lexeme lexbuf) }
+  | float_ { FLOAT (float_of_string (lexeme lexbuf)) }
   | str (* Strip quote characters at end of string. *)
     { let s = lexeme lexbuf in
       STR (String.sub s 1 ((String.length s) - 2)) }
+  | id { ID (lexeme lexbuf) }
+  | "(bool)" { BOOLCAST }
+  | "(int)" { INTCAST }
+  | "(float)" { FLOATCAST }
+  | "(string)" { STRCAST }
   | "+" { PLUS }
   | "-" { MINUS }
   | "*" { TIMES }
   | "/" { DIV }
+  | "%" { MOD }
   | "==" { EQ }
   | "!=" { NE }
   | "<" { LT }
@@ -50,12 +57,31 @@ rule read = parse
   | "!" { NOT }
   | "&&" { AND }
   | "||" { OR }
+  | "&" { BITAND }
+  | "|" { BITOR }
+  | "^" { BITXOR }
+  | "<<" { LEFTSHIFT }
+  | ">>" { RIGHTSHIFT }
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "{" { LBRACE }
   | "}" { RBRACE }
   | ":=" { DEF }
   | "=" { ASGN }
+  | "+=" { ADDASGN }
+  | "-=" { SUBASGN }
+  | "*=" { MULTASGN }
+  | "/=" { DIVASGN }
+  | "%=" { MODASGN }
+  | "&&=" { BOOLANDASGN }
+  | "||=" { BOOLORASGN }
+  | "&=" { BITANDASGN }
+  | "|=" { BITORASGN }
+  | "^=" { BITXORASGN }
+  | "<<=" { LEFTSHIFTASGN }
+  | ">>=" { RIGHTSHIFTASGN }
   | "," { COMMA }
+  | ":" { COLON }
+  | "?" { QUESTIONMARK }
   | eof { EOF }
   | _ { raise (Unexpected_char (lexeme_start lexbuf)) }

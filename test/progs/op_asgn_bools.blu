@@ -1,0 +1,7 @@
+a := true
+b := false
+
+a &&= true
+print a
+a &&= b
+print a

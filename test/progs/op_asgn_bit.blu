@@ -1,0 +1,21 @@
+a := 123
+
+a &= 17
+print a
+a = 123
+
+a |= 29
+print a
+a = 123
+
+a ^= 873 
+print a
+a = 123
+
+a <<= 2
+print a
+a = 123
+
+a >>= 4
+print a
+a = 123
