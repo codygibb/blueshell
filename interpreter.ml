@@ -50,17 +50,17 @@ let rec eval_expr env = function
   | Ast.Id id -> Env.lookup env id
   | Ast.Cast (cast_type, e) ->
       begin match (cast_type), (eval_expr env e) with
-      | Ast.IntCast, Prim.Int e2 -> Prim.Int e2
-      | Ast.IntCast, Prim.Float e2 -> Prim.Int (int_of_float e2)
-      | Ast.IntCast, Prim.Str e2 -> Prim.Int (int_of_string e2)
-      | Ast.FloatCast, Prim.Int e2 -> Prim.Float (float_of_int e2)
-      | Ast.FloatCast, Prim.Float e2 -> Prim.Float e2
-      | Ast.FloatCast, Prim.Str e2 -> Prim.Float (float_of_string e2)
-      | Ast.StrCast, Prim.Int e2 -> Prim.Str (string_of_int e2)
-      | Ast.StrCast, Prim.Float e2 -> Prim.Str(string_of_float e2)
-      | Ast.StrCast, Prim.Str e2 -> Prim.Str e2
-      | Ast.StrCast, Prim.Bool e2 -> Prim.Str (string_of_bool e2)
-      | Ast.BoolCast, Prim.Str e2 -> Prim.Bool (bool_of_string e2)
+      | Ast.Int_cast, Prim.Int e2 -> Prim.Int e2
+      | Ast.Int_cast, Prim.Float e2 -> Prim.Int (int_of_float e2)
+      | Ast.Int_cast, Prim.Str e2 -> Prim.Int (int_of_string e2)
+      | Ast.Float_cast, Prim.Int e2 -> Prim.Float (float_of_int e2)
+      | Ast.Float_cast, Prim.Float e2 -> Prim.Float e2
+      | Ast.Float_cast, Prim.Str e2 -> Prim.Float (float_of_string e2)
+      | Ast.Str_cast, Prim.Int e2 -> Prim.Str (string_of_int e2)
+      | Ast.Str_cast, Prim.Float e2 -> Prim.Str(string_of_float e2)
+      | Ast.Str_cast, Prim.Str e2 -> Prim.Str e2
+      | Ast.Str_cast, Prim.Bool e2 -> Prim.Str (string_of_bool e2)
+      | Ast.Bool_cast, Prim.Str e2 -> Prim.Bool (bool_of_string e2)
       | e1, e2 -> raise (Exec_error (sprintf "cannot cast %s to type %s" (Prim.to_str e2) (Ast.cast_type_to_str e1)))
       end
   | Ast.Bin_op (binop, e1, e2) ->
@@ -80,13 +80,13 @@ let rec eval_expr env = function
           | Ast.Gt -> Prim.Bool (i1 > i2)
           | Ast.Lte -> Prim.Bool (i1 <= i2)
           | Ast.Gte -> Prim.Bool (i1 >= i2)
-          | Ast.BitAnd -> Prim.Int (i1 land i2)
-          | Ast.BitOr -> Prim.Int (i1 lor i2)
-          | Ast.BitXor -> Prim.Int (i1 lxor i2)
-          | Ast.LeftShift -> Prim.Int (i1 lsl i2)
-          | Ast.RightShift -> Prim.Int (i1 lsr i2)
-          | _ -> raise (Exec_error (sprintf "cannot apply %s to ints"
-                                                   (Ast.to_str binop)))
+          | Ast.Bit_and -> Prim.Int (i1 land i2)
+          | Ast.Bit_or -> Prim.Int (i1 lor i2)
+          | Ast.Bit_xor -> Prim.Int (i1 lxor i2)
+          | Ast.Left_shift -> Prim.Int (i1 lsl i2)
+          | Ast.Right_shift -> Prim.Int (i1 lsr i2)
+          (*| _ -> raise (Exec_error (sprintf "cannot apply %s to ints"*)
+                                                   (*(Ast.to_str binop)))*)
           end
       | Prim.Float f1, Prim.Float f2 ->
           begin match binop with

@@ -9,7 +9,6 @@ and stmt =
   | Print of expr
   | Return of expr
   | If_then_else of expr * stmt_list * stmt_list
-  | Op_Asgn of id * opasgn * expr
 
 and expr =
   | Int of int
@@ -29,18 +28,18 @@ and expr =
 and binop =
   | Add | Sub | Mult | Div | Mod
   | Eq | Ne | Lt | Gt | Lte | Gte
-  | BitAnd | BitOr | BitXor | LeftShift | RightShift
+  | Bit_and | Bit_or | Bit_xor | Left_shift | Right_shift
 
 and opasgn =
-  | AddAsgn | SubAsgn | MultAsgn | DivAsgn | ModAsgn
-  | BoolAndAsgn | BoolOrAsgn
-  | BitAndAsgn | BitOrAsgn | BitXorAsgn | LeftShiftAsgn | RightShiftAsgn
+  | Add_asgn | Sub_asgn | Mult_asgn | Div_asgn | Mod_asgn
+  | Bool_and_asgn | Bool_or_asgn
+  | Bit_and_asgn | Bit_or_asgn | Bit_xor_asgn | Left_shift_asgn | Right_shift_asgn
 
 and cast_types =
-  | IntCast
-  | FloatCast
-  | StrCast
-  | BoolCast
+  | Int_cast
+  | Float_cast
+  | Str_cast
+  | Bool_cast
 
 let to_str = function
   | Add -> "+"
@@ -54,14 +53,14 @@ let to_str = function
   | Gt -> ">"
   | Lte -> "<="
   | Gte -> ">="
-  | BitAnd -> "&"
-  | BitOr -> "|"
-  | BitXor -> "^"
-  | LeftShift -> "<<"
-  | RightShift -> ">>"
+  | Bit_and -> "&"
+  | Bit_or -> "|"
+  | Bit_xor -> "^"
+  | Left_shift -> "<<"
+  | Right_shift -> ">>"
 
 let cast_type_to_str = function
-  | IntCast -> "int"
-  | BoolCast -> "bool"
-  | FloatCast -> "float"
-  | StrCast -> "str"
+  | Int_cast -> "int"
+  | Bool_cast -> "bool"
+  | Float_cast -> "float"
+  | Str_cast -> "str"

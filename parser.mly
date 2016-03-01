@@ -99,11 +99,11 @@ expr:
   | e1=expr; GT; e2=expr { Bin_op (Gt, e1, e2) }
   | e1=expr; LTE; e2=expr { Bin_op (Lte, e1, e2) }
   | e1=expr; GTE; e2=expr { Bin_op (Gte, e1, e2) }
-  | e1=expr; BITAND; e2=expr { Bin_op (BitAnd, e1, e2) }
-  | e1=expr; BITOR; e2=expr { Bin_op (BitOr, e1, e2) }
-  | e1=expr; BITXOR; e2=expr { Bin_op (BitXor, e1, e2) }
-  | e1=expr; LEFTSHIFT; e2=expr { Bin_op (LeftShift, e1, e2) }
-  | e1=expr; RIGHTSHIFT; e2=expr { Bin_op (RightShift, e1, e2) }
+  | e1=expr; BITAND; e2=expr { Bin_op (Bit_and, e1, e2) }
+  | e1=expr; BITOR; e2=expr { Bin_op (Bit_or, e1, e2) }
+  | e1=expr; BITXOR; e2=expr { Bin_op (Bit_xor, e1, e2) }
+  | e1=expr; LEFTSHIFT; e2=expr { Bin_op (Left_shift, e1, e2) }
+  | e1=expr; RIGHTSHIFT; e2=expr { Bin_op (Right_shift, e1, e2) }
   | NOT; e=expr { Not e }
   | e1=expr; AND; e2=expr { And (e1, e2) }
   | e1=expr; OR; e2=expr { Or (e1, e2) }
@@ -116,17 +116,17 @@ bin_op_asgn:
   | MULTASGN { Mult }
   | DIVASGN { Div }
   | MODASGN { Mod }
-  | BITANDASGN { BitAnd }
-  | BITORASGN { BitOr }
-  | BITXORASGN { BitXor }
-  | LEFTSHIFTASGN { LeftShift }
-  | RIGHTSHIFTASGN { RightShift }
+  | BITANDASGN { Bit_and }
+  | BITORASGN { Bit_or }
+  | BITXORASGN { Bit_xor }
+  | LEFTSHIFTASGN { Left_shift }
+  | RIGHTSHIFTASGN { Right_shift }
 
 typecast:
-  | BOOLCAST { BoolCast }
-  | INTCAST { IntCast }
-  | FLOATCAST { FloatCast }
-  | STRCAST { StrCast }
+  | BOOLCAST { Bool_cast }
+  | INTCAST { Int_cast }
+  | FLOATCAST { Float_cast }
+  | STRCAST { Str_cast }
 
 id_list:
   | l=nonempty_id_list { l }
