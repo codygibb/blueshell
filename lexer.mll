@@ -2,7 +2,7 @@
   open Lexing
   open Parser
 
-  exception Unexpected_char of int
+  exception Error
 
   let next_line lexbuf =
     let pos = lexbuf.lex_curr_p in
@@ -84,4 +84,4 @@ rule read = parse
   | ":" { COLON }
   | "?" { QUESTIONMARK }
   | eof { EOF }
-  | _ { raise (Unexpected_char (lexeme_start lexbuf)) }
+  | _ { raise Error }

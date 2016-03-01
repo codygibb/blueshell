@@ -36,7 +36,7 @@ and type_cast =
   | Str_cast
   | Bool_cast
 
-let to_str = function
+let binop_to_str = function
   | Add -> "+"
   | Sub -> "-"
   | Mult -> "*"
@@ -54,7 +54,7 @@ let to_str = function
   | Left_shift -> "<<"
   | Right_shift -> ">>"
 
-let cast_type_to_str = function
+let type_cast_to_str = function
   | Int_cast -> "int"
   | Bool_cast -> "bool"
   | Float_cast -> "float"

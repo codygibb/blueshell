@@ -31,7 +31,7 @@ let nth_line file n =
   close_in ic;
   line
 
-let parse_err msg lexbuf =
+let syntax_err lexbuf =
   let open Lexing in
   let p = lexbuf.lex_start_p in
   let line = get_line p.pos_fname p.pos_bol in
@@ -39,14 +39,14 @@ let parse_err msg lexbuf =
   eprintf "File \"%s\", line %d, column %d:\n\n" p.pos_fname p.pos_lnum col;
   eprintf "  %s\n" line;
   eprintf "  %s^\n" (tab_aligned_spacing (String.sub line 0 col));
-  eprintf "Error: %s\n" msg;
+  eprintf "Syntax error\n";
   exit 1
 
-let exec_err msg file lnum =
+let exec_err err file lnum =
   let line = nth_line file lnum in
-  eprintf "\nFile \"%s\", line %d:\n\n" file lnum;
+  eprintf "File \"%s\", line %d:\n\n" file lnum;
   eprintf "  %s\n" line;
-  eprintf "\nError: %s\n" msg;
+  eprintf "\nError: %s\n" (Interpreter.get_err_msg err);
   exit 1
 
 let () =
@@ -55,6 +55,5 @@ let () =
   try
     Interpreter.run lexbuf
   with
-  | Lexer.Unexpected_char i -> parse_err "Unexpected character" lexbuf
-  | Parser.Error -> parse_err "Syntax error" lexbuf
-  | Interpreter.Tracked_exec_error (lnum, msg) -> exec_err msg file lnum
+  | Lexer.Error | Parser.Error -> syntax_err lexbuf
+  | Interpreter.Tracked_exec_error (lnum, err) -> exec_err err file lnum

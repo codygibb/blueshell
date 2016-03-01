@@ -1,3 +1,5 @@
+k := str(5) + 'bar'
+print x
 func f(n, g) {
 	return g(n + 1)
 }
