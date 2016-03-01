@@ -30,11 +30,6 @@ and binop =
   | Eq | Ne | Lt | Gt | Lte | Gte
   | Bit_and | Bit_or | Bit_xor | Left_shift | Right_shift
 
-and opasgn =
-  | Add_asgn | Sub_asgn | Mult_asgn | Div_asgn | Mod_asgn
-  | Bool_and_asgn | Bool_or_asgn
-  | Bit_and_asgn | Bit_or_asgn | Bit_xor_asgn | Left_shift_asgn | Right_shift_asgn
-
 and cast_types =
   | Int_cast
   | Float_cast
