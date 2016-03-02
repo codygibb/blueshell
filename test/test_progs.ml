@@ -33,7 +33,13 @@ let _  =
       (* Re-direct stdout to actual_outfile. *)
       Unix.dup2 (Unix.descr_of_out_channel actual_oc) Unix.stdout;
 
-      Interpreter.run (Interpreter.get_lexbuf infile);
+      begin
+        try Interpreter.run (Interpreter.get_lexbuf infile)
+        with
+        | Interpreter.Tracked_exec_error (_, err) ->
+            printf "error: %s\n" (Interpreter.err_to_str err)
+      end;
+
       flush stdout;
       close_out actual_oc;
 

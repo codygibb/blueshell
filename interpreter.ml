@@ -2,7 +2,7 @@ open Printf
 
 exception Violated_invariant of string
 
-type exec_error =
+type err =
   | Var_already_defined of Ast.id
   | Var_not_found of Ast.id
   | Invalid_cast of Ast.type_cast * Prim.t
@@ -13,6 +13,26 @@ type exec_error =
   | Incorrect_arg_num of int * int
   | Return_from_main
 
+(* This method is used for testing purposes only, see get_err_msg for
+ * user-readable error messages. *)
+let err_to_str = function
+  | Var_already_defined id -> sprintf "Var_already_defined %s" id
+  | Var_not_found id -> sprintf "Var_not_found %s" id
+  | Invalid_cast (t, p) ->
+      sprintf "Invalid_cast (%s, %s)" (Ast.type_cast_to_str t) (Prim.to_str p)
+  | Divide_by_zero -> "Divide_by_zero"
+  | Mismatched_binop_types (binop, left, right) ->
+      sprintf "Mismatched_binop_types (%s, %s, %s)"
+        (Ast.binop_to_str binop) (Prim.to_str left) (Prim.to_str right)
+  | Unsupported_binop (binop, t) ->
+      sprintf "Unsupported_binop (%s, %s)" (Ast.binop_to_str binop) t
+  | Incorrect_type (op, p, expected) ->
+      sprintf "Incorrect_type (%s, %s, %s)" op (Prim.to_str p) expected
+  | Incorrect_arg_num (expected, given) ->
+      sprintf "Incorrect_arg_num (%d, %d)" expected given
+  | Return_from_main -> "Return_from_main"
+
+(* Generates a user-readable error message. *)
 let get_err_msg = function
   | Var_already_defined id -> sprintf "variable already defined: '%s'" id
   | Var_not_found id -> sprintf "variable not defined: '%s'" id
@@ -26,16 +46,14 @@ let get_err_msg = function
   | Unsupported_binop (binop, t) ->
       sprintf "'%s' is not supported for '%s' types" (Ast.binop_to_str binop) t
   | Incorrect_type (op, p, expected) ->
-      sprintf "'%s' cannot be applied to type '%s', expected '%s'"
-        op (Prim.to_str p) expected
+      sprintf "'%s' cannot be applied to type '%s', expected '%s'" op (Prim.to_str p) expected
   | Incorrect_arg_num (expected, given) ->
-      sprintf "incorrect number of arguments: expected %d, given %d"
-        expected given
+      sprintf "incorrect number of arguments: expected %d, given %d" expected given
   | Return_from_main -> "cannot return from main"
 
-exception Exec_error of exec_error
+exception Exec_error of err
 
-exception Tracked_exec_error of int * exec_error
+exception Tracked_exec_error of int * err
 
 module Step = struct
   type t =

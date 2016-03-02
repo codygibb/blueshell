@@ -1,0 +1,6 @@
+func f() {
+	return y + 1
+}
+y := 5
+print y
+print f()
