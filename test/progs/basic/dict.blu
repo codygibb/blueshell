@@ -1,0 +1,4 @@
+d := {'a': 5, 'b': 6, 'c': 3 + 4}
+print d['a']
+d['b'] = 'foo'
+print d 

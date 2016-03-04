@@ -15,6 +15,7 @@
 %token NOT AND OR
 %token LPAREN RPAREN
 %token LBRACE RBRACE
+%token LBRACKET RBRACKET
 %token DEF
 %token ASGN
 %token FUNC
@@ -68,6 +69,8 @@ stmt:
   | IF; e=expr; LBRACE; tb=block; RBRACE; ELSE; LBRACE; fb=block; RBRACE
       { If_then_else (e, tb, fb) }
   | IF; e=expr; LBRACE; b=block; RBRACE { If_then_else (e, b, []) }
+  | c=expr; LBRACKET; k=expr; RBRACKET; ASGN; v=expr
+      { Set (c, k, v) }
   | x=ID; o=bin_op_asgn; e=expr { Asgn (x, Bin_op(o, Id x, e)) }
   | x=ID; BOOLANDASGN; e=expr { Asgn (x, And (Id x, e)) }
   | x=ID; BOOLORASGN; e=expr { Asgn (x, Or (Id x, e)) }
@@ -88,6 +91,9 @@ expr:
   | LPAREN; e=expr; RPAREN { e }
   | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
   | e=expr; LPAREN; l=expr_list; RPAREN { Call (e, l) }
+  | LBRACKET; l=expr_list; RBRACKET { List l }
+  | LBRACE; l=kv_list; RBRACE { Dict l }
+  | c=expr; LBRACKET; k=expr; RBRACKET { Get (c, k) }
   | e1=expr; PLUS; e2=expr { Bin_op (Add, e1, e2) }
   | e1=expr; MINUS; e2=expr { Bin_op (Sub, e1, e2) }
   | e1=expr; TIMES; e2=expr { Bin_op (Mult, e1, e2) }
@@ -143,3 +149,14 @@ expr_list:
 nonempty_expr_list:
   | e=expr { [e] }
   | e=expr; COMMA; l=expr_list { e :: l }
+
+kv_list:
+  | l=nonempty_kv_list { l }
+  | { [] }
+
+nonempty_kv_list:
+  | kv=key_val { [kv] }
+  | kv=key_val; COMMA; l=kv_list { kv :: l }
+
+key_val:
+  | k=STR; COLON; v=expr { (k, v) }

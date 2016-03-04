@@ -66,6 +66,8 @@ rule read = parse
   | ")" { RPAREN }
   | "{" { LBRACE }
   | "}" { RBRACE }
+  | "[" { LBRACKET }
+  | "]" { RBRACKET }
   | ":=" { DEF }
   | "=" { ASGN }
   | "+=" { ADDASGN }

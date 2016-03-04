@@ -1,17 +1,20 @@
+open Core.Std
+
 open Printf
 
 let rec walk dir f =
-  Array.iter
-    (fun file ->
-      let path = Filename.concat dir file in
-      if Sys.is_directory path then walk path f else f path)
-    (Sys.readdir dir)
+  Array.iter (Sys.readdir dir) ~f:(fun file ->
+    let path = Filename.concat dir file in
+    match Sys.is_directory path with
+    | `Yes -> walk path f
+    | `No -> f path
+    | `Unknown -> ()
+  )
 
 let read f =
-  let ic = open_in f in
-  let n = in_channel_length ic in
-  let s = really_input_string ic n in
-  close_in ic;
+  let ic = In_channel.create f in
+  let s = In_channel.input_all ic in
+  In_channel.close ic;
   s
 
 let usage () =
@@ -19,7 +22,7 @@ let usage () =
   exit 1
 
 let _  =
-  let test_progs = if Array.length Sys.argv != 2 then usage () else Sys.argv.(1) in
+  let test_progs = if Array.length Sys.argv <> 2 then usage () else Sys.argv.(1) in
   walk test_progs (fun infile ->
     if Filename.check_suffix infile ".blu" then begin
       printf "%s ... " infile;
@@ -27,7 +30,7 @@ let _  =
 
       let outfile = infile ^ ".out" in
       let actual_outfile = Filename.temp_file "." ".actual" in
-      let actual_oc = open_out actual_outfile in
+      let actual_oc = Out_channel.create  actual_outfile in
       let oldstdout = Unix.dup Unix.stdout in
 
       (* Re-direct stdout to actual_outfile. *)
@@ -41,7 +44,7 @@ let _  =
       end;
 
       flush stdout;
-      close_out actual_oc;
+      Out_channel.close actual_oc;
 
       (* Restore stdout. *)
       Unix.dup2 oldstdout Unix.stdout;

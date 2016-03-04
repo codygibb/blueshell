@@ -9,6 +9,7 @@ and stmt =
   | Print of expr
   | Return of expr
   | If_then_else of expr * stmt_list * stmt_list
+  | Set of expr * expr * expr
 
 and expr =
   | Int of int
@@ -24,6 +25,9 @@ and expr =
   | Ternary of expr * expr * expr
   | Func of id list * stmt_list
   | Call of expr * expr list
+  | List of expr list
+  | Dict of (string * expr) list
+  | Get of expr * expr
 
 and binop =
   | Add | Sub | Mult | Div | Mod
