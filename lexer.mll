@@ -32,6 +32,7 @@ rule read = parse
   | "return" { RETURN }
   | "if" { IF }
   | "else" { ELSE }
+  | "within" { WITHIN }
   | "bool" { BOOLCAST }
   | "int" { INTCAST }
   | "float" { FLOATCAST }

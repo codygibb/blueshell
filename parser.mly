@@ -23,6 +23,7 @@
 %token PRINT
 %token RETURN
 %token IF ELSE
+%token WITHIN
 %token COMMA
 %token COLON
 %token QUESTIONMARK
@@ -75,6 +76,7 @@ stmt:
   | x=ID; o=bin_op_asgn; e=expr { Asgn (x, Bin_op(o, Id x, e)) }
   | x=ID; BOOLANDASGN; e=expr { Asgn (x, And (Id x, e)) }
   | x=ID; BOOLORASGN; e=expr { Asgn (x, Or (Id x, e)) }
+  | WITHIN; e=expr; LBRACE; b=block; RBRACE { Within (e, b) }
 
 eif_list:
   | ELSE; IF; e=expr; LBRACE; b=block; RBRACE; eif=eif_list { [(None, If_then_else(e, b, eif))] }

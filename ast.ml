@@ -10,6 +10,7 @@ and stmt =
   | Return of expr
   | If_then_else of expr * stmt_list * stmt_list
   | Set of expr * expr * expr
+  | Within of expr * stmt_list
 
 and expr =
   | Int of int

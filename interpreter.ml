@@ -274,6 +274,11 @@ and exec_stmt env = function
           raise (Exec_error (Incorrect_two_type
             ("set", (p1, "list|dict"), (p2, "int|str")))));
       Step.Next
+  | Ast.Within (dir, block) ->
+      begin match eval_expr env dir with
+      | Prim.Str s -> exec_block env block
+      | p -> raise (Exec_error (Incorrect_type ("within", p, "str")))
+      end
 
 and exec_prog sl =
   let env = Env.create () in

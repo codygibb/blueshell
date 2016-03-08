@@ -1,0 +1,12 @@
+within ("~/dir1/dir2") {
+  print "inside within"
+}
+print "outside within"
+
+func a(x, y) {
+  return str(x + y)
+}
+
+within a(1, 2) {
+  print "inside within again"
+}
