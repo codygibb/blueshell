@@ -111,16 +111,6 @@ let rec eval_expr env = function
       end
   | Ast.Typeof (e) ->
       Prim.Str (Prim.type_str (eval_expr env e))
-      (*begin match eval_expr env e with
-      | Prim.Unit -> Prim.Str (Prim.type_str Prim.Unit)
-      | Prim.Int t -> Prim.Str (Prim.type_str t)
-      | Prim.Bool t -> Prim.Str (Prim.type_str Prim.Bool)
-      | Prim.Float t -> Prim.Str (Prim.type_str Prim.Float)
-      | Prim.Str t -> Prim.Str (Prim.type_str Prim.Str)
-      | Prim.Closure t -> Prim.Str (Prim.type_str Prim.Closure)
-      | Prim.List t -> Prim.Str (Prim.type_str Prim.List)
-      | Prim.Dict t -> Prim.Str (Prim.type_str Prim.Dict)
-      end*)
   | Ast.Bin_op (binop, e1, e2) ->
       begin match (eval_expr env e1), (eval_expr env e2) with
       | Prim.Int i1, Prim.Int i2 ->
