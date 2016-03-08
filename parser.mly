@@ -69,15 +69,17 @@ stmt:
       { Def (f, Func (l, b)) }
   | PRINT; e=expr { Print e }
   | RETURN; e=expr { Return e }
-  | IF; e=expr; LBRACE; tb=block; RBRACE; ELSE; LBRACE; fb=block; RBRACE
-      { If_then_else (e, tb, fb) }
-  | IF; e=expr; LBRACE; b=block; RBRACE { If_then_else (e, b, []) }
+  | IF; e=expr; LBRACE; tb=block; RBRACE; eif=eif_list { If_then_else (e, tb, eif) }
   | c=expr; LBRACKET; k=expr; RBRACKET; ASGN; v=expr
       { Set (c, k, v) }
   | x=ID; o=bin_op_asgn; e=expr { Asgn (x, Bin_op(o, Id x, e)) }
   | x=ID; BOOLANDASGN; e=expr { Asgn (x, And (Id x, e)) }
   | x=ID; BOOLORASGN; e=expr { Asgn (x, Or (Id x, e)) }
 
+eif_list:
+  | ELSE; IF; e=expr; LBRACE; b=block; RBRACE; eif=eif_list { [(None, If_then_else(e, b, eif))] }
+  | ELSE; LBRACE; b=block; RBRACE { b }
+  | { [] }
 
 block:
   | s=stmt { [(None, s)] }
