@@ -8,6 +8,7 @@
 %token <string> STR
 %token <string> ID 
 %token BOOLCAST INTCAST FLOATCAST STRCAST
+%token TYPEOF
 %token ADDASGN SUBASGN MULTASGN DIVASGN MODASGN BOOLANDASGN BOOLORASGN BITANDASGN BITORASGN BITXORASGN LEFTSHIFTASGN RIGHTSHIFTASGN
 %token PLUS MINUS TIMES DIV MOD
 %token EQ NE LT GT LTE GTE
@@ -43,6 +44,8 @@
 %left LEFTSHIFT RIGHTSHIFT
 %left PLUS MINUS
 %left DIV TIMES
+
+%right TYPEOF
 
 %right NOT
 
@@ -88,6 +91,7 @@ expr:
   | s=STR { Str s }
   | x=ID { Id x }
   | t=typecast; LPAREN; e=expr; RPAREN { Cast(t, e) }
+  | TYPEOF; e=expr { Typeof(e) }
   | LPAREN; e=expr; RPAREN { e }
   | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
   | e=expr; LPAREN; l=expr_list; RPAREN { Call (e, l) }
