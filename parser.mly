@@ -24,6 +24,9 @@
 %token RETURN
 %token IF ELSE
 %token WITHIN
+%token WHILE
+%token FOR
+%token IN
 %token COMMA
 %token COLON
 %token QUESTIONMARK
@@ -77,6 +80,8 @@ stmt:
   | x=ID; BOOLANDASGN; e=expr { Asgn (x, And (Id x, e)) }
   | x=ID; BOOLORASGN; e=expr { Asgn (x, Or (Id x, e)) }
   | WITHIN; e=expr; LBRACE; b=block; RBRACE { Within (e, b) }
+  | WHILE; e=expr; LBRACE; b=block; RBRACE; { While(e, b)}
+  | FOR; x=ID; IN; e=expr; LBRACE; b=block; RBRACE; {For(x, e, b)}
 
 eif_list:
   | ELSE; IF; e=expr; LBRACE; b=block; RBRACE; eif=eif_list { [(None, If_then_else(e, b, eif))] }

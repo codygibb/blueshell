@@ -279,6 +279,12 @@ and exec_stmt env = function
       | Prim.Str s -> exec_block env block
       | p -> raise (Exec_error (Incorrect_type ("within", p, "str")))
       end
+  | Ast.While (expr, stmt_list) ->
+      begin match eval_expr env expr with
+      | Prim.Bool b -> (if b then begin exec_block env stmt_list; exec_stmt env (Ast.While(expr, stmt_list)); end else Step.Next)  
+      | p -> raise(Exec_error(Incorrect_type("while", p, "bool"))) 
+      end
+  | Ast.For(id, expr, stmt_list) -> Step.Next; (*TODO Implement for loops after creating tuples*)
 
 and exec_prog sl =
   let env = Env.create () in

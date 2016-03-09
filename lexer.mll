@@ -33,11 +33,14 @@ rule read = parse
   | "if" { IF }
   | "else" { ELSE }
   | "within" { WITHIN }
+  | "for" { FOR }
+  | "while" { WHILE }
   | "bool" { BOOLCAST }
   | "int" { INTCAST }
   | "float" { FLOATCAST }
   | "str" { STRCAST }
   | "typeof" { TYPEOF }
+  | "in" { IN }
   | bool_ { BOOL ((lexeme lexbuf) = "true") }
   | integer { INT (int_of_string (lexeme lexbuf)) }
   | float_ { FLOAT (float_of_string (lexeme lexbuf)) }
