@@ -1,0 +1,9 @@
+x := 0
+z := 1
+
+while x < 10 {
+	z = z * 2
+	x = x + 1
+} 
+
+print z
