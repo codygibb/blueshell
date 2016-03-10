@@ -6,6 +6,8 @@ and stmt =
   | Expr of expr
   | Def of id * expr
   | Asgn of id * expr
+  | Multi_def of id list * expr
+  | Multi_asgn of id list * expr
   | Print of expr
   | Return of expr
   | If_then_else of expr * stmt_list * stmt_list
@@ -32,6 +34,9 @@ and expr =
   | List of expr list
   | Dict of (string * expr) list
   | Get of expr * expr
+  | Tuple of expr list
+  | Shellcall of string
+  | Try_shellcall of string
 
 and binop =
   | Add | Sub | Mult | Div | Mod

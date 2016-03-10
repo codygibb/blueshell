@@ -15,13 +15,14 @@
 
 let whitespace = [' ' '\t']+
 let digit = ['0'-'9']
-let integer = '-'? digit+
-let float_ = '-'? digit* ['.']? digit+
+let integer = "-"? digit+
+let float_ = "-"? digit* "."? digit+
 let letter = ['a'-'z' 'A'-'Z']
-let id = (letter | '_') (letter | digit | '_')*
+let id = (letter | "_") (letter | digit | "_")*
 let str = ('"' [^'"']* '"') | ('\'' [^'\'']* '\'')
 let bool_ = "true" | "false"
 let comment = "#" [^'\n']*
+let shellcall = "$>" [^'\n']*
 
 rule read = parse
   | comment { read lexbuf }
@@ -41,6 +42,10 @@ rule read = parse
   | "str" { STRCAST }
   | "typeof" { TYPEOF }
   | "in" { IN }
+  | "try" { TRY }
+  | shellcall
+    { let s = lexeme lexbuf in
+      SHELLCALL (String.sub s 2 ((String.length s) - 2)) }
   | bool_ { BOOL ((lexeme lexbuf) = "true") }
   | integer { INT (int_of_string (lexeme lexbuf)) }
   | float_ { FLOAT (float_of_string (lexeme lexbuf)) }

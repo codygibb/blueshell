@@ -1,0 +1,6 @@
+$> mkdir test/foo
+$> touch test/foo/a.txt
+$> touch test/foo/b.txt
+out := $> ls -A1 test/foo
+print out
+$> rm -rf test/foo

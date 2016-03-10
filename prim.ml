@@ -7,6 +7,7 @@ type t =
   | Closure of (t Env.t * Ast.id list * Ast.stmt_list)
   | List of t Blu_list.t
   | Dict of t Blu_dict.t
+  | Tuple of t list
 
 let rec to_str = function
   | Unit -> "()"
@@ -25,6 +26,7 @@ let rec to_str = function
         match p with
         | Str s -> "\"" ^ s ^ "\""
         | p -> to_str p)
+  | Tuple t -> print_endline "not implemented"; assert false
 
 let type_str = function
   | Unit -> "unit"
@@ -35,3 +37,4 @@ let type_str = function
   | Closure _ -> "func"
   | List _ -> "list"
   | Dict _ -> "dict"
+  | Tuple t -> "tuple"

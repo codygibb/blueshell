@@ -1,9 +1,2 @@
-x := str(5) + 'bar'
+x := $> ls -A1
 print x
-func f(n, g) {
-	return g(n + 1)
-}
-
-print f((1 + 5 * 2), func(n) {
-	return n + 2
-})

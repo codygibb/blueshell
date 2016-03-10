@@ -3,6 +3,8 @@ open Printf
 
 exception Violated_invariant of string
 
+exception Not_implemented of string
+
 type err =
   | Var_already_defined of Ast.id
   | Var_not_found of Ast.id
@@ -16,6 +18,7 @@ type err =
   | Return_from_main
   | Key_not_found of string
   | Index_out_of_bounds of int
+  | Shellcall_failed of string * Shell.err
 
 (* This method is used for testing purposes only, see get_err_msg for
  * user-readable error messages. *)
@@ -40,6 +43,7 @@ let err_to_str = function
   | Return_from_main -> "Return_from_main"
   | Key_not_found k -> sprintf "Key_not_found %s" k
   | Index_out_of_bounds i -> sprintf "Index_out_of_bounds %d" i
+  | Shellcall_failed (s, _) -> sprintf "Shellcall_failed %s" s
 
 (* Generates a user-readable error message. *)
 let get_err_msg = function
@@ -64,6 +68,23 @@ let get_err_msg = function
   | Return_from_main -> "cannot return from main"
   | Key_not_found k -> sprintf "key not found: '%s'" k
   | Index_out_of_bounds i -> sprintf "index out of bounds: %d" i
+  | Shellcall_failed (cmd, err) ->
+      begin match err with
+      | Shell.Exit (stdout, stderr, code) ->
+          (sprintf "$> %s\n" cmd) ^
+          (sprintf "exited non-zero: %d\n" code) ^
+          (sprintf "---- stdout ----\n") ^
+          (sprintf "%s\n" stdout) ^
+          (sprintf "---- stderr ----\n") ^
+          (sprintf "%s\n" stderr)
+      | Shell.Signal (stdout, stderr, signal) ->
+          (sprintf "$> %s\n" cmd) ^
+          (sprintf "interrupted by signal: %s\n" signal) ^
+          (sprintf "---- stdout ----\n") ^
+          (sprintf "%s\n" stdout) ^
+          (sprintf "---- stderr ----\n") ^
+          (sprintf "%s\n" stderr)
+      end
 
 exception Exec_error of err
 
@@ -238,6 +259,20 @@ let rec eval_expr env = function
           raise (Exec_error (Incorrect_two_type
             ("get", (p1, "list|dict"), (p2, "int|str"))))
       end
+  | Ast.Tuple expr_list -> Prim.Tuple (List.map expr_list ~f:(eval_expr env))
+  | Ast.Shellcall s ->
+      begin match Shell.call s with
+      | Result.Ok out -> Prim.Str out
+      | Result.Error err -> raise (Exec_error (Shellcall_failed (s, err)))
+      end
+  | Ast.Try_shellcall s ->
+      begin match Shell.call s with
+      | Result.Ok out -> Prim.Tuple [Prim.Str out; Prim.Int 0]
+      | Result.Error (Shell.Exit (stdout, _, code)) ->
+          Prim.Tuple [Prim.Str stdout; Prim.Int code]
+      | Result.Error (Shell.Signal (stdout, _, _)) ->
+          Prim.Tuple [Prim.Str stdout; Prim.Int 2] (* TODO: signals *)
+      end
 
 and exec_block env sl =
   let env' = Env.extend env in
@@ -255,10 +290,25 @@ and exec_block env sl =
   in
   step sl
 
+and unpack id_list tuple f =
+  match (List.zip id_list tuple) with
+  | Some l -> List.iter l ~f:f
+  | None -> raise (Exec_error (Incorrect_arg_num (List.length tuple, List.length id_list)))
+
 and exec_stmt env = function
   | Ast.Expr e -> let _ = eval_expr env e in Step.Next
   | Ast.Def (id, e) -> Env.bind env id (eval_expr env e); Step.Next
   | Ast.Asgn (id, e) -> Env.update env id (eval_expr env e); Step.Next
+  | Ast.Multi_def (id_list, e) ->
+      begin match eval_expr env e with
+      | Prim.Tuple t -> unpack id_list t (fun (id, p) -> Env.bind env id p); Step.Next
+      | p -> raise (Exec_error (Incorrect_type ("unpack-def", p, "tuple")))
+      end
+  | Ast.Multi_asgn (id_list, e) ->
+      begin match eval_expr env e with
+      | Prim.Tuple t -> unpack id_list t (fun (id, p) -> Env.update env id p); Step.Next
+      | p -> raise (Exec_error (Incorrect_type ("unpack-asgn", p, "tuple")))
+      end
   | Ast.Print e -> (eval_expr env e) |> Prim.to_str |> print_endline; Step.Next
   | Ast.Return e -> Step.Return (eval_expr env e)
   | Ast.If_then_else (cond_e, true_b, false_b) ->
@@ -281,8 +331,12 @@ and exec_stmt env = function
       end
   | Ast.While (expr, stmt_list) ->
       begin match eval_expr env expr with
-      | Prim.Bool b -> (if b then begin exec_block env stmt_list; exec_stmt env (Ast.While(expr, stmt_list)); end else Step.Next)  
-      | p -> raise(Exec_error(Incorrect_type("while", p, "bool"))) 
+      | Prim.Bool b ->
+          if b then
+            let _ = exec_block env stmt_list in
+            exec_stmt env (Ast.While (expr, stmt_list))
+          else Step.Next  
+      | p -> raise (Exec_error (Incorrect_type ("while", p, "bool"))) 
       end
   | Ast.For(id, expr, stmt_list) -> Step.Next; (*TODO Implement for loops after creating tuples*)
 

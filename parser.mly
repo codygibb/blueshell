@@ -7,6 +7,7 @@
 %token <float> FLOAT
 %token <string> STR
 %token <string> ID 
+%token <string> SHELLCALL
 %token BOOLCAST INTCAST FLOATCAST STRCAST
 %token TYPEOF
 %token ADDASGN SUBASGN MULTASGN DIVASGN MODASGN BOOLANDASGN BOOLORASGN BITANDASGN BITORASGN BITXORASGN LEFTSHIFTASGN RIGHTSHIFTASGN
@@ -30,6 +31,7 @@
 %token COMMA
 %token COLON
 %token QUESTIONMARK
+%token TRY
 %token <int> NEWLINE
 %token EOF
 
@@ -82,6 +84,13 @@ stmt:
   | WITHIN; e=expr; LBRACE; b=block; RBRACE { Within (e, b) }
   | WHILE; e=expr; LBRACE; b=block; RBRACE; { While(e, b)}
   | FOR; x=ID; IN; e=expr; LBRACE; b=block; RBRACE; {For(x, e, b)}
+  | x=ID; DEF; sc=SHELLCALL { Def (x, Shellcall sc) }
+  | x=ID; ASGN; sc=SHELLCALL { Asgn (x, Shellcall sc) }
+  | sc=SHELLCALL { Expr (Shellcall sc) }
+  | out=ID; COMMA; err=ID; DEF; TRY; sc=SHELLCALL
+      { Multi_def ([out; err], Try_shellcall sc) }
+  | out=ID; COMMA; err=ID; ASGN; TRY; sc=SHELLCALL
+      { Multi_asgn ([out; err], Try_shellcall sc) }
 
 eif_list:
   | ELSE; IF; e=expr; LBRACE; b=block; RBRACE; eif=eif_list { [(None, If_then_else(e, b, eif))] }
@@ -107,6 +116,7 @@ expr:
   | LBRACKET; l=expr_list; RBRACKET { List l }
   | LBRACE; l=kv_list; RBRACE { Dict l }
   | c=expr; LBRACKET; k=expr; RBRACKET { Get (c, k) }
+  | LPAREN; l=expr_list; RPAREN { Tuple l }
   | e1=expr; PLUS; e2=expr { Bin_op (Add, e1, e2) }
   | e1=expr; MINUS; e2=expr { Bin_op (Sub, e1, e2) }
   | e1=expr; TIMES; e2=expr { Bin_op (Mult, e1, e2) }
