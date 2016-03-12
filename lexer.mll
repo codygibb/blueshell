@@ -33,7 +33,7 @@ rule read = parse
   | "return" { RETURN }
   | "if" { IF }
   | "else" { ELSE }
-  | "within" { WITHIN }
+  | "cd" { CD }
   | "for" { FOR }
   | "while" { WHILE }
   | "bool" { BOOLCAST }

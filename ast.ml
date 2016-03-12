@@ -12,7 +12,7 @@ and stmt =
   | Return of expr
   | If_then_else of expr * stmt_list * stmt_list
   | Set of expr * expr * expr
-  | Within of expr * stmt_list
+  | Cd of expr * stmt_list
   | While of expr * stmt_list
   | For of id * expr * stmt_list
 

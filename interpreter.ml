@@ -324,10 +324,10 @@ and exec_stmt env = function
           raise (Exec_error (Incorrect_two_type
             ("set", (p1, "list|dict"), (p2, "int|str")))));
       Step.Next
-  | Ast.Within (dir, block) ->
+  | Ast.Cd (dir, block) ->
       begin match eval_expr env dir with
       | Prim.Str s -> exec_block env block
-      | p -> raise (Exec_error (Incorrect_type ("within", p, "str")))
+      | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
       end
   | Ast.While (expr, stmt_list) ->
       begin match eval_expr env expr with
