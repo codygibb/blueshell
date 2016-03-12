@@ -1,0 +1,21 @@
+a := ".tmp"
+$> mkdir ${a}
+
+func f(s) {
+	return s
+}
+
+func b(i) {
+	while i < 5 {
+		print i
+		i += 1
+	}
+	return true
+}
+
+cd a {
+	$> touch ${ f("foo") + ".txt" } && echo ${ b(0) ? "meow" : "bark" } > foo.txt 
+}
+
+out := $> cat ${a}/foo.txt
+print out

@@ -115,7 +115,20 @@ module Step = struct
     | Return of Prim.t
 end
 
-let rec eval_expr env = function
+(* cd ${x+"/bar"} && ls ${f} *)
+let rec interpolate_shellcall env sc =
+  if Str.string_match (Str.regexp "\${([^}]*)}") sc 0 then
+    let expr_str = Str.matched_group 1 sc in
+    let start = Str.match_beginning () in
+    let stop = Str.match_end () in
+    interpolate_shellcall (String.concat [
+      String.slice 0 start;
+      Prim.to_str (eval_expr env (Parser.expr Lexer.read (Lexing.from_string expr_str)));
+      String.slice stop -1;
+    ])
+  else sc
+
+and rec eval_expr env = function
   | Ast.Int i -> Prim.Int i
   | Ast.Bool b -> Prim.Bool b
   | Ast.Float f -> Prim.Float f
@@ -307,11 +320,13 @@ let rec eval_expr env = function
       end
   | Ast.Tuple expr_list -> Prim.Tuple (List.map expr_list ~f:(eval_expr env))
   | Ast.Shellcall s ->
+      let s = interpolate_shellcall env s in
       begin match Shell.call s with
       | Result.Ok out -> Prim.Str out
       | Result.Error err -> raise (Exec_error (Shellcall_failed (s, err)))
       end
   | Ast.Try_shellcall s ->
+      let s = interpolate_shellcall env s in
       begin match Shell.call s with
       | Result.Ok out -> Prim.Tuple [Prim.Str out; Prim.Int 0]
       | Result.Error (Shell.Exit (stdout, _, code)) ->
