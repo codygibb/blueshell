@@ -1,0 +1,13 @@
+$> mkdir .tmp
+cd ".tmp" {
+	$> touch f
+	out := $> ls -A1
+	print out
+}
+print "===="
+out := $> ls -A1 .tmp
+print out
+
+# cleanup
+$> rm .tmp/f
+$> rmdir .tmp

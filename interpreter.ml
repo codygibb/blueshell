@@ -258,6 +258,7 @@ let rec eval_expr env = function
           let raise_err exp = raise (Exec_error (Incorrect_arg_num (List.length args, exp))) in
           begin match recv with
           | Prim.List l ->
+              (* TODO: write tests for exceptions *)
               begin match mid with
               | "push" ->
                   begin match args with
@@ -358,7 +359,7 @@ and exec_stmt env = function
   | Ast.Return e -> Step.Return (eval_expr env e)
   | Ast.If_then_else (cond_e, true_b, false_b) ->
       begin match eval_expr env cond_e with
-      | Prim.Bool b -> exec_block env (if b then true_b else false_b)
+      | Prim.Bool b -> exec_block (Env.extend env) (if b then true_b else false_b)
       | p -> raise (Exec_error (Incorrect_type ("if", p, "bool")))
       end
   | Ast.Set (e1, e2, e3) ->
@@ -369,18 +370,26 @@ and exec_stmt env = function
           raise (Exec_error (Incorrect_two_type
             ("set", (p1, "list|dict"), (p2, "int|str")))));
       Step.Next
-  | Ast.Cd (dir, block) ->
-      begin match eval_expr env dir with
-      | Prim.Str s -> exec_block env block
+  | Ast.Cd (dir_e, block) ->
+      begin match eval_expr env dir_e with
+      | Prim.Str s ->
+          let old_dir = Sys.getcwd () in
+          Sys.chdir s;
+          exec_block (Env.extend env) block;
+          Sys.chdir old_dir;
+          Step.Next
       | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
       end
-  | Ast.While (expr, stmt_list) ->
-      begin match eval_expr env expr with
+  | Ast.While (cond_e, stmt_list) ->
+      begin match eval_expr env cond with
       | Prim.Bool b ->
-          if b then
-            let _ = exec_block env stmt_list in
-            exec_stmt env (Ast.While (expr, stmt_list))
-          else Step.Next  
+          let rec aux () =
+            (if exec_stmt env cond_e then 
+              exec_block (Env.extend env) stmt_list;
+              aux ());
+          in
+          aux ();
+          Step.Next
       | p -> raise (Exec_error (Incorrect_type ("while", p, "bool"))) 
       end
   | Ast.For(id, expr, stmt_list) -> Step.Next; (*TODO Implement for loops after creating tuples*)
