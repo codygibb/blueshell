@@ -6,7 +6,7 @@ exception Invalid_arg_num
 
 type 'a t = 'a Array.t ref
 
-let create = ref Array.of_list 
+let create l = ref (Array.of_list l)
 
 let get l i =
   try (!l).(i)

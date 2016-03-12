@@ -5,16 +5,16 @@ type t =
   | Float of float
   | Str of string
   | Closure of (t Env.t * Ast.id list * Ast.stmt_list)
-  | Builtin_method of builtin_method
+  | Builtin_method of receiver * Ast.id
   | List of t Blu_list.t
   | Dict of t Blu_dict.t
   | Tuple of t list
   | Object of Blu_object.t
 
-and builtin_method =
-  | List of t Blu_list.t * Ast.id
-  | Dict of t Blu_dict.t * Ast.id
-  | Object of t Blu_object.t * Ast.id
+and receiver =
+  | List of t Blu_list.t
+  | Dict of t Blu_dict.t
+  | Object of Blu_object.t
 
 let rec to_str = function
   | Unit -> "()"
@@ -23,6 +23,7 @@ let rec to_str = function
   | Float f -> Printf.sprintf "%f" f
   | Str s -> s
   | Closure _ -> "<func>"
+  | Builtin_method _ -> "<func>"
   | List l ->
       Blu_list.to_str l ~v_to_str:(fun p ->
         match p with
@@ -33,8 +34,8 @@ let rec to_str = function
         match p with
         | Str s -> "\"" ^ s ^ "\""
         | p -> to_str p)
-  | Tuple t -> print_endline "not implemented"; assert false
-  | Object 
+  | Tuple t -> "not implemented"
+  | Object o -> "not implemented"
 
 let type_str = function
   | Unit -> "unit"
@@ -43,6 +44,7 @@ let type_str = function
   | Float _ -> "float"
   | Str _ -> "str"
   | Closure _ -> "func"
+  | Builtin_method _ -> "func"
   | List _ -> "list"
   | Dict _ -> "dict"
   | Tuple t -> "tuple"

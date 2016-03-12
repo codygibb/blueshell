@@ -253,10 +253,10 @@ let rec eval_expr env = function
           | Step.Return v -> v
           | Step.Next -> Prim.Unit
           end
-      | Prim.Builtin_method (o, mid) ->
+      | Prim.Builtin_method (recv, mid) ->
           let args = List.map arg_exprs ~f:(eval_expr env) in
           let raise_err exp = raise (Exec_error (Incorrect_arg_num (List.length args, exp))) in
-          begin match o with
+          begin match recv with
           | Prim.List l ->
               begin match mid with
               | "push" ->

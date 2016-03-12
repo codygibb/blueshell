@@ -114,7 +114,7 @@ expr:
   | LPAREN; e=expr; RPAREN { e }
   | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
   | e=expr; LPAREN; l=expr_list; RPAREN { Call (e, l) }
-  | o=expr; DOT; f=ID {  }
+  | e=expr; DOT; x=ID { Field_lookup (e, x) }
   | LBRACKET; l=expr_list; RBRACKET { List l }
   | LBRACE; l=kv_list; RBRACE { Dict l }
   | c=expr; LBRACKET; k=expr; RBRACKET { Get (c, k) }

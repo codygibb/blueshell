@@ -1,0 +1,9 @@
+l := [1, 2, 3]
+l.push(4)
+print l
+x := l.pop()
+y := l.pop()
+print l.len()
+print x
+print y
+print l
