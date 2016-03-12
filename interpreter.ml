@@ -374,6 +374,7 @@ and exec_stmt env = function
       begin match eval_expr env dir_e with
       | Prim.Str s ->
           let old_dir = Sys.getcwd () in
+          (* TODO: Handle exception when chdir fails. *)
           Sys.chdir s;
           exec_block (Env.extend env) block;
           Sys.chdir old_dir;
@@ -381,17 +382,16 @@ and exec_stmt env = function
       | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
       end
   | Ast.While (cond_e, stmt_list) ->
-      begin match eval_expr env cond with
-      | Prim.Bool b ->
-          let rec aux () =
-            (if exec_stmt env cond_e then 
-              exec_block (Env.extend env) stmt_list;
-              aux ());
-          in
-          aux ();
-          Step.Next
-      | p -> raise (Exec_error (Incorrect_type ("while", p, "bool"))) 
-      end
+      let rec aux () =
+        match eval_expr env cond_e with
+        | Prim.Bool b ->
+            if b then
+              let _ = exec_block (Env.extend env) stmt_list in
+              aux ()
+            else Step.Next
+        | p -> raise (Exec_error (Incorrect_type ("while", p, "bool")))
+      in
+      aux ()
   | Ast.For(id, expr, stmt_list) -> Step.Next; (*TODO Implement for loops after creating tuples*)
 
 and exec_prog sl =
