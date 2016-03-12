@@ -1,4 +1,5 @@
 {
+  open Core.Std
   open Lexing
   open Parser
 
@@ -45,13 +46,13 @@ rule read = parse
   | "try" { TRY }
   | shellcall
     { let s = lexeme lexbuf in
-      SHELLCALL (String.sub s 2 ((String.length s) - 2)) }
+      SHELLCALL (String.slice s 2 (String.length s)) }
   | bool_ { BOOL ((lexeme lexbuf) = "true") }
   | integer { INT (int_of_string (lexeme lexbuf)) }
   | float_ { FLOAT (float_of_string (lexeme lexbuf)) }
   | str (* Strip quote characters at end of string. *)
     { let s = lexeme lexbuf in
-      STR (String.sub s 1 ((String.length s) - 2)) }
+      STR (String.slice s 1 ((String.length s) - 1)) }
   | id { ID (lexeme lexbuf) }
   | "+" { PLUS }
   | "-" { MINUS }

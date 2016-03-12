@@ -39,7 +39,7 @@ let syntax_err lexbuf =
   let col = p.pos_cnum - p.pos_bol in
   eprintf "File \"%s\", line %d, column %d:\n\n" p.pos_fname p.pos_lnum col;
   eprintf "  %s\n" line;
-  (*eprintf "  %s^\n" (tab_aligned_spacing (String.slice line 0 col));*)
+  eprintf "  %s^\n" (tab_aligned_spacing (String.slice line 0 col));
   eprintf "Syntax error\n";
   exit 1
 

@@ -1,8 +1,8 @@
+open Core.Std
+
 exception Var_already_defined of Ast.id
 
 exception Var_not_found of Ast.id
-
-let init_size = 32
 
 type 'a t =
   { parent : 'a t option;
@@ -11,7 +11,7 @@ type 'a t =
 
 let create () =
   { parent = None;
-    tbl = Hashtbl.create init_size;
+    tbl = String.Table.create ();
   }
 
 (* Note: [freeze e] does not make the values in [e.tbl] static,
@@ -24,21 +24,22 @@ let freeze e =
 
 let extend e =
   { parent = Some (freeze e);
-    tbl = Hashtbl.create init_size;
+    tbl = String.Table.create ();
   }
 
 let bind e id v =
-  if Hashtbl.mem e.tbl id then
-    raise (Var_already_defined id)
-  else
-    Hashtbl.add e.tbl id (ref v)
+  match Hashtbl.add_or_error e.tbl id (ref v) with
+  | Ok _ -> ()
+  | Error _ -> raise (Var_already_defined id)
 
 let rec get_ref e id =
-  try Hashtbl.find e.tbl id
-  with Not_found ->
-    match e.parent with
-    | Some e' -> get_ref e' id
-    | None -> raise (Var_not_found id)
+  match Hashtbl.find e.tbl id with
+  | Some r -> r
+  | None ->
+      begin match e.parent with
+      | Some e' -> get_ref e' id
+      | None -> raise (Var_not_found id)
+      end
 
 let lookup e id =
   !(get_ref e id)

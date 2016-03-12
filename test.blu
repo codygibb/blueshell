@@ -1,2 +1,2 @@
-x := $> ls -A1
+x := tru $> ls -A1
 print x
