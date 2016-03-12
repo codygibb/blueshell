@@ -5,9 +5,16 @@ type t =
   | Float of float
   | Str of string
   | Closure of (t Env.t * Ast.id list * Ast.stmt_list)
+  | Builtin_method of builtin_method
   | List of t Blu_list.t
   | Dict of t Blu_dict.t
   | Tuple of t list
+  | Object of Blu_object.t
+
+and builtin_method =
+  | List of t Blu_list.t * Ast.id
+  | Dict of t Blu_dict.t * Ast.id
+  | Object of t Blu_object.t * Ast.id
 
 let rec to_str = function
   | Unit -> "()"
@@ -27,6 +34,7 @@ let rec to_str = function
         | Str s -> "\"" ^ s ^ "\""
         | p -> to_str p)
   | Tuple t -> print_endline "not implemented"; assert false
+  | Object 
 
 let type_str = function
   | Unit -> "unit"

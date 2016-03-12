@@ -1,2 +1,8 @@
+<<<<<<< Updated upstream
 x := tru $> ls -A1
 print x
+=======
+l := [1, 2, 3]
+a := l.append
+a(5)
+>>>>>>> Stashed changes

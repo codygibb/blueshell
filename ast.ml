@@ -31,6 +31,7 @@ and expr =
   | Ternary of expr * expr * expr
   | Func of id list * stmt_list
   | Call of expr * expr list
+  | Field_lookup of expr * id
   | List of expr list
   | Dict of (string * expr) list
   | Get of expr * expr

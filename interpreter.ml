@@ -17,8 +17,10 @@ type err =
   | Incorrect_arg_num of int * int
   | Return_from_main
   | Key_not_found of string
+  | Undefined_method of string * string
   | Index_out_of_bounds of int
   | Shellcall_failed of string * Shell.err
+  | Illegal_state of string
 
 (* This method is used for testing purposes only, see get_err_msg for
  * user-readable error messages. *)
@@ -42,8 +44,10 @@ let err_to_str = function
       sprintf "Incorrect_arg_num (%d, %d)" exp given
   | Return_from_main -> "Return_from_main"
   | Key_not_found k -> sprintf "Key_not_found %s" k
+  | Undefined_method (t, m) -> sprintf "Undefined_method (%s, %s)" t m
   | Index_out_of_bounds i -> sprintf "Index_out_of_bounds %d" i
   | Shellcall_failed (s, _) -> sprintf "Shellcall_failed %s" s
+  | Illegal_state _ -> "Illegal_state"
 
 (* Generates a user-readable error message. *)
 let get_err_msg = function
@@ -67,6 +71,7 @@ let get_err_msg = function
       sprintf "incorrect number of arguments: expected %d, given %d" exp given
   | Return_from_main -> "cannot return from main"
   | Key_not_found k -> sprintf "key not found: '%s'" k
+  | Undefined_method (t, m) -> sprintf "method '%s' not defined for type '%s'" m t
   | Index_out_of_bounds i -> sprintf "index out of bounds: %d" i
   | Shellcall_failed (cmd, err) ->
       begin match err with
@@ -85,6 +90,7 @@ let get_err_msg = function
           (sprintf "---- stderr ----\n") ^
           (sprintf "%s\n" stderr)
       end
+  | Illegal_state msg -> sprintf "illegal state: %s" msg
 
 exception Exec_error of err
 
@@ -225,28 +231,67 @@ let rec eval_expr env = function
   | Ast.Func (arg_ids, block) ->
       Prim.Closure ((Env.extend env), arg_ids, block)
   | Ast.Call (e, arg_exprs) ->
-      let (c_env, arg_ids, body) = match eval_expr env e with
-      | Prim.Closure c -> c
-      | p -> raise (Exec_error (Incorrect_type ("func call", p, "func")))
-      in
-      let rec bind_args env = function
-        | [], [] -> ()
-        | (_ :: _, []) | ([], _ :: _) ->
-            raise (Violated_invariant "bind_args lists should be equal length")
-        | id :: ids, v :: vals ->
-            Env.bind env id v;
-            bind_args env (ids, vals)
-      in
-      let arg_vals = List.map arg_exprs ~f:(eval_expr env) in
-      let args_expected = List.length arg_ids in
-      let args_given = List.length arg_vals in
-      (if args_expected <> args_given then
-        raise (Exec_error (Incorrect_arg_num (args_expected, args_given))));
-      let c_env' = Env.extend c_env in
-      bind_args c_env' (arg_ids, arg_vals);
-      begin match exec_block c_env' body with
-      | Step.Return v -> v
-      | Step.Next -> Prim.Unit
+      begin match eval_expr env e with
+      | Prim.Closure (c_env, arg_ids, body) ->
+          (* TODO: use zip instead *)
+          let rec bind_args env = function
+            | [], [] -> ()
+            | (_ :: _, []) | ([], _ :: _) ->
+                raise (Violated_invariant "bind_args lists should be equal length")
+            | id :: ids, v :: vals ->
+                Env.bind env id v;
+                bind_args env (ids, vals)
+          in
+          let arg_vals = List.map arg_exprs ~f:(eval_expr env) in
+          let args_expected = List.length arg_ids in
+          let args_given = List.length arg_vals in
+          (if args_expected <> args_given then
+            raise (Exec_error (Incorrect_arg_num (args_expected, args_given))));
+          let c_env' = Env.extend c_env in
+          bind_args c_env' (arg_ids, arg_vals);
+          begin match exec_block c_env' body with
+          | Step.Return v -> v
+          | Step.Next -> Prim.Unit
+          end
+      | Prim.Builtin_method (o, mid) ->
+          let args = List.map arg_exprs ~f:(eval_expr env) in
+          let raise_err exp = raise (Exec_error (Incorrect_arg_num (List.length args, exp))) in
+          begin match o with
+          | Prim.List l ->
+              begin match mid with
+              | "push" ->
+                  begin match args with
+                  | [p] -> Blu_list.push l p; Prim.Unit
+                  | _ -> raise_err 1
+                  end
+              | "pop" ->
+                  begin match args with
+                  | [] ->
+                      begin match Blu_list.pop l with
+                      | Some p -> p
+                      | None -> raise (Exec_error (Illegal_state "cannot pop from empty list"))
+                      end
+                  | _ -> raise_err 0
+                  end
+              | "len" ->
+                  begin match args with
+                  | [] -> Prim.Int (Blu_list.len l)
+                  | _ -> raise_err 0
+                  end
+              end
+          | Prim.Dict d -> Prim.Unit
+          | Prim.Object o -> Prim.Unit
+          end
+      | p -> raise (Exec_error (Incorrect_type ("func-call", p, "func")))
+      end
+  | Ast.Field_lookup (e, id) ->
+      begin match (eval_expr env e) with
+      | Prim.Object o -> Prim.Builtin_method (Object o, id)
+      | Prim.List l ->
+          if Set.mem Blu_list.builtins id then Prim.Builtin_method (List l, id)
+          else raise (Exec_error (Undefined_method ("list", id)))
+      | Prim.Dict d -> Prim.Builtin_method (Dict d, id)
+      | p -> raise (Exec_error (Incorrect_type ("field-lookup", p, "object|list|dict")))
       end
   | Ast.List expr_list -> Prim.List (Blu_list.create (List.map expr_list ~f:(eval_expr env)))
   | Ast.Dict kv_list ->

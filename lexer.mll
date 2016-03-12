@@ -96,5 +96,6 @@ rule read = parse
   | "," { COMMA }
   | ":" { COLON }
   | "?" { QUESTIONMARK }
+  | "." { DOT }
   | eof { EOF }
   | _ { raise Error }

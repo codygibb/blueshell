@@ -31,6 +31,7 @@
 %token COMMA
 %token COLON
 %token QUESTIONMARK
+%token DOT
 %token TRY
 %token <int> NEWLINE
 %token EOF
@@ -113,6 +114,7 @@ expr:
   | LPAREN; e=expr; RPAREN { e }
   | FUNC; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE { Func (l, b) }
   | e=expr; LPAREN; l=expr_list; RPAREN { Call (e, l) }
+  | o=expr; DOT; f=ID {  }
   | LBRACKET; l=expr_list; RBRACKET { List l }
   | LBRACE; l=kv_list; RBRACE { Dict l }
   | c=expr; LBRACKET; k=expr; RBRACKET { Get (c, k) }
