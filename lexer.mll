@@ -95,6 +95,7 @@ rule read = parse
   | ">>=" { RIGHTSHIFTASGN }
   | "," { COMMA }
   | ":" { COLON }
+  | ";" { SEMICOLON }
   | "?" { QUESTIONMARK }
   | "." { DOT }
   | eof { EOF }

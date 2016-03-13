@@ -30,6 +30,7 @@
 %token IN
 %token COMMA
 %token COLON
+%token SEMICOLON
 %token QUESTIONMARK
 %token DOT
 %token TRY
@@ -57,11 +58,15 @@
 %right NOT
 
 %start <Ast.stmt_list> prog
+%start <Ast.expr> inline_expr
 
 %%
 
 prog:
   | sl=stmt_list; EOF { sl }
+
+inline_expr:
+  | e=expr; SEMICOLON { e }
 
 stmt_list:
   | s=stmt; lnum=NEWLINE; sl=stmt_list { (Some lnum, s) :: sl }

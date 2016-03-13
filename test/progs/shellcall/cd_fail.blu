@@ -1,4 +1,4 @@
-cd ".tmp/no_exist" {
-	print "this should not be printed"
-}
-print "we should have crashed already"
+#cd ".tmp/no_exist" {
+#	print "this should not be printed"
+#}
+#print "we should have crashed already"

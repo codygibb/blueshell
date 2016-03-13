@@ -19,3 +19,7 @@ cd a {
 
 out := $> cat ${a}/foo.txt
 print out
+
+# cleanup
+$> rm .tmp/foo.txt
+$> rmdir .tmp
