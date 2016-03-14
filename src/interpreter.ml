@@ -21,6 +21,7 @@ type err =
   | Undefined_method of string * string
   | Index_out_of_bounds of int
   | Shellcall_failed of string * Shell.err
+  | Dir_not_found of string
   | Illegal_state of string
   | Illegal_argument of string
 
@@ -49,6 +50,7 @@ let err_to_str = function
   | Undefined_method (t, m) -> sprintf "Undefined_method (%s, %s)" t m
   | Index_out_of_bounds i -> sprintf "Index_out_of_bounds %d" i
   | Shellcall_failed (s, _) -> sprintf "Shellcall_failed %s" s
+  | Dir_not_found dir -> sprintf "directory '%s' not found" dir
   | Illegal_state _ -> "Illegal_state"
   | Illegal_argument msg -> sprintf "illegal argument: %s" msg
 
@@ -94,6 +96,7 @@ let get_err_msg = function
           (sprintf "---- stderr ----\n") ^
           (sprintf "%s\n" stderr)
       end
+  | Dir_not_found dir -> sprintf "directory '%s' not found" dir
   | Illegal_state msg -> sprintf "illegal state: %s" msg
   | Illegal_argument msg -> sprintf "illegal argument: %s" msg
 
@@ -423,9 +426,9 @@ and exec_stmt env = function
       | Prim.Str s ->
           let old_dir = Sys.getcwd () in
           (* TODO: Handle exception when chdir fails. *)
-          Sys.chdir s;
+          (try Sys.chdir s with Sys_error _ -> raise (Exec_error (Dir_not_found s)));
           exec_block (Env.extend env) block;
-          Sys.chdir old_dir;
+          (try Sys.chdir old_dir with Sys_error _ -> raise (Exec_error (Dir_not_found old_dir)));
           Step.Next
       | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
       end
