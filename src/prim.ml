@@ -17,6 +17,7 @@ and receiver =
   | List of t Blu_list.t
   | Dict of t Blu_dict.t
   | Object of Blu_object.t
+  | Str of string
 
 let rec to_str = function
   | Unit -> "()"
@@ -52,3 +53,4 @@ let type_str = function
   | Tuple t -> "tuple"
 
 let list_builtins = String.Set.of_list ["push"; "pop"; "len"]
+let str_builtins = String.Set.of_list ["len"; "substr"]

@@ -22,6 +22,7 @@ type err =
   | Index_out_of_bounds of int
   | Shellcall_failed of string * Shell.err
   | Illegal_state of string
+  | Illegal_argument of string
 
 (* This method is used for testing purposes only, see get_err_msg for
  * user-readable error messages. *)
@@ -49,6 +50,8 @@ let err_to_str = function
   | Index_out_of_bounds i -> sprintf "Index_out_of_bounds %d" i
   | Shellcall_failed (s, _) -> sprintf "Shellcall_failed %s" s
   | Illegal_state _ -> "Illegal_state"
+  | Illegal_argument msg -> sprintf "illegal argument: %s" msg
+
 
 (* Generates a user-readable error message. *)
 let get_err_msg = function
@@ -92,6 +95,7 @@ let get_err_msg = function
           (sprintf "%s\n" stderr)
       end
   | Illegal_state msg -> sprintf "illegal state: %s" msg
+  | Illegal_argument msg -> sprintf "illegal argument: %s" msg
 
 exception Exec_error of err
 
@@ -299,6 +303,25 @@ and eval_expr env = function
               end
           | Prim.Dict d -> Prim.Unit
           | Prim.Object o -> Prim.Unit
+          | Prim.Str s ->
+              begin match mid with
+              | "len" ->
+                  begin match args with
+                  | [] -> Prim.Int (String.length s)
+                  | _ -> raise_err 0
+                  end
+              | "substr" ->
+                  begin match args with
+                  | [Prim.Int i] -> Prim.Str (String.sub s i (String.length s - i))
+                  | [Prim.Int i1; Prim.Int i2] ->
+                      if i1 < 0 then raise (Exec_error(Index_out_of_bounds i1))
+                      else if i1 > String.length s then raise (Exec_error(Index_out_of_bounds i2))
+                      else if i1 > i2 then raise (Exec_error(Illegal_argument "start index must be < stop index"))
+                      else Prim.Str (String.sub s i1 (i2 - i1))
+                  | _ -> raise_err 0
+                  end
+              | _ -> raise (Violated_invariant "should have already made sure method is defined")
+              end
           end
       | p -> raise (Exec_error (Incorrect_type ("func-call", p, "func")))
       end
@@ -309,6 +332,9 @@ and eval_expr env = function
           if Set.mem Prim.list_builtins id then Prim.Builtin_method (List l, id)
           else raise (Exec_error (Undefined_method ("list", id)))
       | Prim.Dict d -> Prim.Builtin_method (Dict d, id)
+      | Prim.Str s ->
+          if Set.mem Prim.str_builtins id then Prim.Builtin_method (Prim.Str s, id)
+          else raise (Exec_error (Undefined_method ("str", id)))
       | p -> raise (Exec_error (Incorrect_type ("field-lookup", p, "object|list|dict")))
       end
   | Ast.List expr_list -> Prim.List (Blu_list.create (List.map expr_list ~f:(eval_expr env)))
@@ -318,9 +344,12 @@ and eval_expr env = function
       begin match eval_expr env e1, eval_expr env e2 with
       | Prim.List l, Prim.Int i -> Blu_list.get l i
       | Prim.Dict d, Prim.Str s -> Blu_dict.get d s
+      | Prim.Str s, Prim.Int i ->
+          if i < 0 || i >= String.length s then raise (Exec_error (Index_out_of_bounds i))
+          else Prim.Str (Char.to_string (String.get s i))
       | p1, p2 ->
           raise (Exec_error (Incorrect_two_type
-            ("get", (p1, "list|dict"), (p2, "int|str"))))
+            ("get", (p1, "list|dict|str"), (p2, "int|str"))))
       end
   | Ast.Tuple expr_list -> Prim.Tuple (List.map expr_list ~f:(eval_expr env))
   | Ast.Shellcall s ->

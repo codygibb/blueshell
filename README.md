@@ -12,6 +12,7 @@ Download the dependecies first:
     $ opam install core
     $ opam install ppx_jane
     $ opam install re2
+    $ opam install oUnit
 
 Make sure the tests pass:
 

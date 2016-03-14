@@ -1,0 +1,9 @@
+s := ''
+print s.len()
+s = "hello world"
+print s.len()
+
+print s[3]
+print s.substr(3)
+print s.substr(3, 7)
+
