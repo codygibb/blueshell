@@ -1,4 +1,3 @@
-$> mkdir .tmp
 cd ".tmp" {
 	$> touch f
 	out := $> ls -A1
@@ -7,7 +6,3 @@ cd ".tmp" {
 print "===="
 out := $> ls -A1 .tmp
 print out
-
-# cleanup
-$> rm .tmp/f
-$> rmdir .tmp

@@ -17,11 +17,20 @@ let read f =
   In_channel.close ic;
   s
 
+let rm_tmp () =
+  if Filename.basename (Sys.getcwd ()) <> "blueshell" then
+    failwith ("not in blueshell directory, probably an error " ^
+              "to remove .tmp directory");
+  match Unix.system "rm -rf .tmp" with
+  | Ok _ -> ()
+  | Error _ -> failwith "could not remove .tmp directory"
+
 let usage () =
   printf "Usage: %s [dir]\n" Sys.argv.(0);
   exit 1
 
 let _  =
+  rm_tmp ();
   let test_progs = if Array.length Sys.argv <> 2 then usage () else Sys.argv.(1) in
   walk test_progs (fun infile ->
     if Filename.check_suffix infile ".blu" then begin
@@ -36,12 +45,14 @@ let _  =
       (* Re-direct stdout to actual_outfile. *)
       Unix.dup2 (Unix.descr_of_out_channel actual_oc) Unix.stdout;
 
+      Unix.mkdir ".tmp";
       begin
         try Interpreter.run (Interpreter.get_lexbuf infile)
         with
         | Interpreter.Tracked_exec_error (_, err) ->
             printf "error: %s\n" (Interpreter.err_to_str err)
       end;
+      rm_tmp ();
 
       flush stdout;
       Out_channel.close actual_oc;
