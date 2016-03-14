@@ -1,4 +1,4 @@
-cd "nonexistant" {
-  print "shouldn't be here"
-}
-print "don't print this"
+out := ""
+out, _ = try $> ls
+print out
+print _

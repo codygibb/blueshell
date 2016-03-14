@@ -1,0 +1,15 @@
+func hello() {
+  print "in hello"
+  return "ignored"
+}
+
+err := 1337
+_, err = try $> ls
+print err
+_, diff_err := try $> ls
+_, diff_err = try $> ls
+_ = hello()
+_ := hello()
+
+print diff_err
+print _

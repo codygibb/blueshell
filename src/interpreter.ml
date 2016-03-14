@@ -394,16 +394,34 @@ and unpack id_list tuple f =
 
 and exec_stmt env = function
   | Ast.Expr e -> let _ = eval_expr env e in Step.Next
-  | Ast.Def (id, e) -> Env.bind env id (eval_expr env e); Step.Next
-  | Ast.Asgn (id, e) -> Env.update env id (eval_expr env e); Step.Next
+  | Ast.Def (id, e) -> let e' = eval_expr env e in
+      begin match id with
+      | "_" -> Step.Next
+      | _ -> Env.bind env id e'; Step.Next
+      end
+  | Ast.Asgn (id, e) -> let e' = eval_expr env e in
+      begin match id with
+      | "_" -> Step.Next
+      | _ -> Env.update env id e'; Step.Next
+      end
   | Ast.Multi_def (id_list, e) ->
       begin match eval_expr env e with
-      | Prim.Tuple t -> unpack id_list t (fun (id, p) -> Env.bind env id p); Step.Next
+      | Prim.Tuple t -> unpack id_list t (fun (id, p) ->
+          begin match id with
+          | "_" -> ()
+          | _ -> Env.bind env id p
+          end);
+      Step.Next
       | p -> raise (Exec_error (Incorrect_type ("unpack-def", p, "tuple")))
       end
   | Ast.Multi_asgn (id_list, e) ->
       begin match eval_expr env e with
-      | Prim.Tuple t -> unpack id_list t (fun (id, p) -> Env.update env id p); Step.Next
+      | Prim.Tuple t -> unpack id_list t (fun (id, p) ->
+          begin match id with
+          | "_" -> ()
+          | _ -> Env.update env id p
+          end);
+      Step.Next
       | p -> raise (Exec_error (Incorrect_type ("unpack-asgn", p, "tuple")))
       end
   | Ast.Print e -> (eval_expr env e) |> Prim.to_str |> print_endline; Step.Next
@@ -425,7 +443,6 @@ and exec_stmt env = function
       begin match eval_expr env dir_e with
       | Prim.Str s ->
           let old_dir = Sys.getcwd () in
-          (* TODO: Handle exception when chdir fails. *)
           (try Sys.chdir s with Sys_error _ -> raise (Exec_error (Dir_not_found s)));
           exec_block (Env.extend env) block;
           (try Sys.chdir old_dir with Sys_error _ -> raise (Exec_error (Dir_not_found old_dir)));
