@@ -295,6 +295,7 @@ and eval_expr env = function
                   | [] -> Prim.Int (Blu_list.len l)
                   | _ -> raise_err 0
                   end
+              | _ -> raise (Violated_invariant "should have already made sure method is defined")
               end
           | Prim.Dict d -> Prim.Unit
           | Prim.Object o -> Prim.Unit
@@ -305,7 +306,7 @@ and eval_expr env = function
       begin match (eval_expr env e) with
       | Prim.Object o -> Prim.Builtin_method (Object o, id)
       | Prim.List l ->
-          if Set.mem Blu_list.builtins id then Prim.Builtin_method (List l, id)
+          if Set.mem Prim.list_builtins id then Prim.Builtin_method (List l, id)
           else raise (Exec_error (Undefined_method ("list", id)))
       | Prim.Dict d -> Prim.Builtin_method (Dict d, id)
       | p -> raise (Exec_error (Incorrect_type ("field-lookup", p, "object|list|dict")))

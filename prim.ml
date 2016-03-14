@@ -1,3 +1,5 @@
+open Core.Std
+
 type t = 
   | Unit
   | Int of int
@@ -48,3 +50,5 @@ let type_str = function
   | List _ -> "list"
   | Dict _ -> "dict"
   | Tuple t -> "tuple"
+
+let list_builtins = String.Set.of_list ["push"; "pop"; "len"]
