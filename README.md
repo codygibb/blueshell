@@ -4,15 +4,20 @@ Shell scripting language
 ![Image of Mario Kart blue shell]
 (http://orig02.deviantart.net/e538/f/2013/036/b/b/blue_shell_the_______by_dreamingsora-d5tye41.png)
 
-Download `ocaml`, `opam`, `menhir`, `core`, and `ppx_jane` first:
+Download the dependecies first:
 
     $ apt-get install ocaml
     $ apt-get install opam
     $ opam install menhir
     $ opam install core
     $ opam install ppx_jane
+    $ opam install re2
 
-Then compile and run:
+Make sure the tests pass:
 
-    $ ocamlbuild --use-ocamlfind main.byte
+    $ ./run_tests.sh
+    
+To run arbitrary `.blu` files:
+
+    $ ocamlbuild -use-ocamlfind main.byte
     $ ./main.byte test.blu
