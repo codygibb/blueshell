@@ -15,6 +15,7 @@ and stmt =
   | Cd of expr * stmt_list
   | While of expr * stmt_list
   | For of id * expr * stmt_list
+  | Shellcall of string
 
 and expr =
   | Int of int
@@ -36,7 +37,7 @@ and expr =
   | Dict of (string * expr) list
   | Get of expr * expr
   | Tuple of expr list
-  | Shellcall of string
+  | Captured_shellcall of string
   | Try_shellcall of string
 
 and binop =

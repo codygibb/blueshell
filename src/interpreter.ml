@@ -20,7 +20,8 @@ type err =
   | Key_not_found of string
   | Undefined_method of string * string
   | Index_out_of_bounds of int
-  | Shellcall_failed of string * Shell.err
+  | Shellcall_failed of string
+  | Captured_shellcall_failed of string * Shell.err
   | Dir_not_found of string
   | Illegal_state of string
   | Illegal_argument of string
@@ -49,7 +50,8 @@ let err_to_str = function
   | Key_not_found k -> sprintf "Key_not_found %s" k
   | Undefined_method (t, m) -> sprintf "Undefined_method (%s, %s)" t m
   | Index_out_of_bounds i -> sprintf "Index_out_of_bounds %d" i
-  | Shellcall_failed (s, _) -> sprintf "Shellcall_failed %s" s
+  | Shellcall_failed cmd -> sprintf "Shellcall_failed %s" cmd
+  | Captured_shellcall_failed (cmd, _) -> sprintf "Captured_shellcall_failed %s" cmd
   | Dir_not_found dir -> sprintf "Dir_not_found %s" dir
   | Illegal_state _ -> "Illegal_state"
   | Illegal_argument _ -> "Illegal_argument"
@@ -79,22 +81,23 @@ let get_err_msg = function
   | Key_not_found k -> sprintf "key not found: '%s'" k
   | Undefined_method (t, m) -> sprintf "method '%s' not defined for type '%s'" m t
   | Index_out_of_bounds i -> sprintf "index out of bounds: %d" i
-  | Shellcall_failed (cmd, err) ->
+  | Shellcall_failed cmd -> sprintf "Command failed: %s" cmd
+  | Captured_shellcall_failed (cmd, err) ->
       begin match err with
       | Shell.Exit (stdout, stderr, code) ->
-          (sprintf "$> %s\n" cmd) ^
+          (sprintf "%s\n" cmd) ^
           (sprintf "exited non-zero: %d\n" code) ^
           (sprintf "---- stdout ----\n") ^
-          (sprintf "%s\n" stdout) ^
+          (sprintf "%s" stdout) ^
           (sprintf "---- stderr ----\n") ^
-          (sprintf "%s\n" stderr)
+          (sprintf "%s" stderr)
       | Shell.Signal (stdout, stderr, signal) ->
           (sprintf "$> %s\n" cmd) ^
           (sprintf "interrupted by signal: %s\n" signal) ^
           (sprintf "---- stdout ----\n") ^
-          (sprintf "%s\n" stdout) ^
+          (sprintf "%s" stdout) ^
           (sprintf "---- stderr ----\n") ^
-          (sprintf "%s\n" stderr)
+          (sprintf "%s" stderr)
       end
   | Dir_not_found dir -> sprintf "directory '%s' not found" dir
   | Illegal_state msg -> sprintf "illegal state: %s" msg
@@ -116,6 +119,8 @@ let track_exn lnum f =
       raise (Tracked_exec_error (lnum, (Key_not_found k)))
   | Blu_list.Index_out_of_bounds i ->
       raise (Tracked_exec_error (lnum, (Index_out_of_bounds i)))
+  | Shell.Call_failed cmd ->
+      raise (Tracked_exec_error (lnum, (Shellcall_failed cmd)))
 
 module Step = struct
   type t =
@@ -381,15 +386,15 @@ and eval_expr env = function
             ("get", (p1, "list|dict|str"), (p2, "int|str"))))
       end
   | Ast.Tuple expr_list -> Prim.Tuple (List.map expr_list ~f:(eval_expr env))
-  | Ast.Shellcall s ->
+  | Ast.Captured_shellcall s ->
       let s = interpolate_shellcall env s in
-      begin match Shell.call s with
+      begin match Shell.capture_call s with
       | Result.Ok out -> Prim.Str out
-      | Result.Error err -> raise (Exec_error (Shellcall_failed (s, err)))
+      | Result.Error err -> raise (Exec_error (Captured_shellcall_failed (s, err)))
       end
   | Ast.Try_shellcall s ->
       let s = interpolate_shellcall env s in
-      begin match Shell.call s with
+      begin match Shell.capture_call s with
       | Result.Ok out -> Prim.Tuple [Prim.Str out; Prim.Int 0]
       | Result.Error (Shell.Exit (stdout, _, code)) ->
           Prim.Tuple [Prim.Str stdout; Prim.Int code]
@@ -521,8 +526,13 @@ and exec_stmt env = function
             ()
           );
           Step.Next
-      | p -> raise (Exec_error (Incorrect_type ("for", p, "list | func -> (prim, bool)")))
+      | p ->
+          raise (Exec_error (Incorrect_type
+            ("for", p, "list | func -> (prim, bool)")))
       end
+  | Ast.Shellcall s ->
+      Shell.call (interpolate_shellcall env s);
+      Step.Next
 
 and exec_prog sl argv =
   let env = Env.create () in

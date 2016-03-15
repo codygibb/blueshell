@@ -90,9 +90,9 @@ stmt:
   | CD; e=expr; LBRACE; b=block; RBRACE { Cd (e, b) }
   | WHILE; e=expr; LBRACE; b=block; RBRACE; { While(e, b)}
   | FOR; x=ID; IN; e=expr; LBRACE; b=block; RBRACE; {For(x, e, b)}
-  | x=ID; DEF; sc=SHELLCALL { Def (x, Shellcall sc) }
-  | x=ID; ASGN; sc=SHELLCALL { Asgn (x, Shellcall sc) }
-  | sc=SHELLCALL { Expr (Shellcall sc) }
+  | x=ID; DEF; sc=SHELLCALL { Def (x, Captured_shellcall sc) }
+  | x=ID; ASGN; sc=SHELLCALL { Asgn (x, Captured_shellcall sc) }
+  | sc=SHELLCALL { Shellcall sc }
   | out=ID; COMMA; err=ID; DEF; TRY; sc=SHELLCALL
       { Multi_def ([out; err], Try_shellcall sc) }
   | out=ID; COMMA; err=ID; ASGN; TRY; sc=SHELLCALL
