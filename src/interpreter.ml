@@ -50,9 +50,9 @@ let err_to_str = function
   | Undefined_method (t, m) -> sprintf "Undefined_method (%s, %s)" t m
   | Index_out_of_bounds i -> sprintf "Index_out_of_bounds %d" i
   | Shellcall_failed (s, _) -> sprintf "Shellcall_failed %s" s
-  | Dir_not_found dir -> sprintf "directory '%s' not found" dir
+  | Dir_not_found dir -> sprintf "Dir_not_found %s" dir
   | Illegal_state _ -> "Illegal_state"
-  | Illegal_argument msg -> sprintf "illegal argument: %s" msg
+  | Illegal_argument _ -> "Illegal_argument"
 
 
 (* Generates a user-readable error message. *)
@@ -323,6 +323,21 @@ and eval_expr env = function
                       else Prim.Str (String.sub s i1 (i2 - i1))
                   | _ -> raise_err 0
                   end
+              | "split" ->
+                  begin match args with
+                  | [Prim.Str c] ->
+                      begin match String.length c with
+                      | 1 -> Prim.List (Blu_list.create (List.map (String.split s ~on:(String.get c 0)) ~f:(fun x -> (Prim.Str x))))
+                      | 2 ->
+                          begin match c with
+                          | "\\n" -> Prim.List (Blu_list.create (List.map (String.split s ~on:('\n')) ~f:(fun x -> (Prim.Str x))))
+                          | "\\t" -> Prim.List (Blu_list.create (List.map (String.split s ~on:('\t')) ~f:(fun x -> (Prim.Str x))))
+                          | _ -> raise (Exec_error(Illegal_argument "split can only take one character | \\n | \\t"))
+                          end
+                      | _ -> raise (Exec_error(Illegal_argument "split can only take one character | \\n | \\t"))
+                      end
+                  | _ -> raise_err 0
+                  end
               | _ -> raise (Violated_invariant "should have already made sure method is defined")
               end
           end
@@ -394,16 +409,34 @@ and unpack id_list tuple f =
 
 and exec_stmt env = function
   | Ast.Expr e -> let _ = eval_expr env e in Step.Next
-  | Ast.Def (id, e) -> Env.bind env id (eval_expr env e); Step.Next
-  | Ast.Asgn (id, e) -> Env.update env id (eval_expr env e); Step.Next
+  | Ast.Def (id, e) -> let e' = eval_expr env e in
+      begin match id with
+      | "_" -> Step.Next
+      | _ -> Env.bind env id e'; Step.Next
+      end
+  | Ast.Asgn (id, e) -> let e' = eval_expr env e in
+      begin match id with
+      | "_" -> Step.Next
+      | _ -> Env.update env id e'; Step.Next
+      end
   | Ast.Multi_def (id_list, e) ->
       begin match eval_expr env e with
-      | Prim.Tuple t -> unpack id_list t (fun (id, p) -> Env.bind env id p); Step.Next
+      | Prim.Tuple t -> unpack id_list t (fun (id, p) ->
+          begin match id with
+          | "_" -> ()
+          | _ -> Env.bind env id p
+          end);
+      Step.Next
       | p -> raise (Exec_error (Incorrect_type ("unpack-def", p, "tuple")))
       end
   | Ast.Multi_asgn (id_list, e) ->
       begin match eval_expr env e with
-      | Prim.Tuple t -> unpack id_list t (fun (id, p) -> Env.update env id p); Step.Next
+      | Prim.Tuple t -> unpack id_list t (fun (id, p) ->
+          begin match id with
+          | "_" -> ()
+          | _ -> Env.update env id p
+          end);
+      Step.Next
       | p -> raise (Exec_error (Incorrect_type ("unpack-asgn", p, "tuple")))
       end
   | Ast.Print e -> (eval_expr env e) |> Prim.to_str |> print_endline; Step.Next
@@ -425,7 +458,6 @@ and exec_stmt env = function
       begin match eval_expr env dir_e with
       | Prim.Str s ->
           let old_dir = Sys.getcwd () in
-          (* TODO: Handle exception when chdir fails. *)
           (try Sys.chdir s with Sys_error _ -> raise (Exec_error (Dir_not_found s)));
           exec_block (Env.extend env) block;
           (try Sys.chdir old_dir with Sys_error _ -> raise (Exec_error (Dir_not_found old_dir)));

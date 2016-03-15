@@ -7,17 +7,11 @@ type t =
   | Float of float
   | Str of string
   | Closure of (t Env.t * Ast.id list * Ast.stmt_list)
-  | Builtin_method of receiver * Ast.id
+  | Builtin_method of t * Ast.id
   | List of t Blu_list.t
   | Dict of t Blu_dict.t
   | Tuple of t list
   | Object of Blu_object.t
-
-and receiver =
-  | List of t Blu_list.t
-  | Dict of t Blu_dict.t
-  | Object of Blu_object.t
-  | Str of string
 
 let rec to_str = function
   | Unit -> "()"
@@ -37,8 +31,8 @@ let rec to_str = function
         match p with
         | Str s -> "\"" ^ s ^ "\""
         | p -> to_str p)
-  | Tuple t -> "not implemented"
-  | Object o -> "not implemented"
+  | Tuple t -> "<tuple>"
+  | Object o -> "<object>"
 
 let type_str = function
   | Unit -> "unit"
@@ -53,4 +47,4 @@ let type_str = function
   | Tuple t -> "tuple"
 
 let list_builtins = String.Set.of_list ["push"; "pop"; "len"]
-let str_builtins = String.Set.of_list ["len"; "substr"]
+let str_builtins = String.Set.of_list ["len"; "substr"; "split"]
