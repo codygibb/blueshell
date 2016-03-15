@@ -524,8 +524,10 @@ and exec_stmt env = function
       | p -> raise (Exec_error (Incorrect_type ("for", p, "list | func -> (prim, bool)")))
       end
 
-and exec_prog sl =
+and exec_prog sl argv =
   let env = Env.create () in
+  Env.bind env "argv"
+    (Prim.List (Blu_list.create (List.map argv ~f:(fun s -> Prim.Str s))));
   let rec step = function
     | [] -> ()
     | (None, _) :: _ ->
@@ -544,5 +546,5 @@ let get_lexbuf file =
   lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file };
   lexbuf
 
-let run lexbuf =
-  exec_prog (Parser.prog Lexer.read lexbuf)
+let run lexbuf argv =
+  exec_prog (Parser.prog Lexer.read lexbuf) argv
