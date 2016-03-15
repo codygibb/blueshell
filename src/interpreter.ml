@@ -130,18 +130,11 @@ end
 
 let rec interpolate_shellcall env s =
   let re = Re2.create_exn "\${([^}]*)}" in
-  match Re2.get_matches_exn ~max:1 re s with
-  | [m] ->
-      let expr_str = Re2.Match.get_exn ~sub:(`Index 1) m in
-      let lexbuf = (Lexing.from_string (expr_str ^ ";")) in
-      let (start, len) = Re2.Match.get_pos_exn ~sub:(`Index 0) m in
-        interpolate_shellcall env (String.concat [
-          String.slice s 0 start;
-          Prim.to_str (eval_expr env (Parser.inline_expr Lexer.read lexbuf));
-          String.slice s (start + len) (String.length s)
-        ])
-  | [] -> s
-  | _ -> raise (Violated_invariant "get_matches returned > 1")
+  Re2.replace_exn re s ~f:(fun m ->
+    let expr_str = Re2.Match.get_exn ~sub:(`Index 1) m in
+    let lexbuf = (Lexing.from_string (expr_str ^ ";")) in
+    Prim.to_str (eval_expr env (Parser.inline_expr Lexer.read lexbuf))
+  )
 
 and eval_expr env = function
   | Ast.Int i -> Prim.Int i
