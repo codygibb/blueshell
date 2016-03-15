@@ -1,4 +1,2 @@
-out := ""
-out, _ = try $> ls
-print out
-print _
+files := $> ls
+print files.split("\n")

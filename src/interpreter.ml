@@ -323,6 +323,21 @@ and eval_expr env = function
                       else Prim.Str (String.sub s i1 (i2 - i1))
                   | _ -> raise_err 0
                   end
+              | "split" ->
+                  begin match args with
+                  | [Prim.Str c] ->
+                      begin match String.length c with
+                      | 1 -> Prim.List (Blu_list.create (List.map (String.split s ~on:(String.get c 0)) ~f:(fun x -> (Prim.Str x))))
+                      | 2 ->
+                          begin match c with
+                          | "\\n" -> Prim.List (Blu_list.create (List.map (String.split s ~on:('\n')) ~f:(fun x -> (Prim.Str x))))
+                          | "\\t" -> Prim.List (Blu_list.create (List.map (String.split s ~on:('\t')) ~f:(fun x -> (Prim.Str x))))
+                          | _ -> raise (Exec_error(Illegal_argument "split can only take one character | \\n | \\t"))
+                          end
+                      | _ -> raise (Exec_error(Illegal_argument "split can only take one character | \\n | \\t"))
+                      end
+                  | _ -> raise_err 0
+                  end
               | _ -> raise (Violated_invariant "should have already made sure method is defined")
               end
           end

@@ -1,0 +1,18 @@
+s := "hello this is a test string"
+l := s.split(" ")
+print l.len()
+print l
+
+file := ".tmp.txt"
+$> echo "hello" > ${file}
+$> echo "hello" >> ${file}
+$> echo "hello" >> ${file}
+
+data := $> cat ${file}
+
+split_data := data.split('\n')
+print split_data
+print split_data.len()
+print split_data[2]
+
+$> rm ${file}
