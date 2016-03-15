@@ -50,9 +50,9 @@ let err_to_str = function
   | Undefined_method (t, m) -> sprintf "Undefined_method (%s, %s)" t m
   | Index_out_of_bounds i -> sprintf "Index_out_of_bounds %d" i
   | Shellcall_failed (s, _) -> sprintf "Shellcall_failed %s" s
-  | Dir_not_found dir -> sprintf "directory '%s' not found" dir
+  | Dir_not_found dir -> sprintf "Dir_not_found %s" dir
   | Illegal_state _ -> "Illegal_state"
-  | Illegal_argument msg -> sprintf "illegal argument: %s" msg
+  | Illegal_argument _ -> "Illegal_argument"
 
 
 (* Generates a user-readable error message. *)
