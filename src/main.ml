@@ -18,26 +18,32 @@ let tab_aligned_spacing s =
   new_s
 
 let get_line file offset =
-  let ic = open_in file in
-  seek_in ic offset;
-  let line = input_line ic in
-  close_in ic;
+  let ic = In_channel.create file in
+  In_channel.seek ic offset;
+  let line = match In_channel.input_line ic with
+  | Some l -> l
+  | None -> failwith "no line at offset"
+  in
+  In_channel.close ic;
   line
 
 let nth_line file n =
-  let ic = open_in file in
+  let ic = In_channel.create file in
   let rec aux i =
-    let line = input_line ic in
+    let line = match In_channel.input_line ic with
+    | Some l -> l
+    | None -> failwith "n > num lines in file"
+    in
     if i = n then line else aux (i + 1)
   in
   let line = aux 1 in
-  close_in ic;
+  In_channel.close ic;
   line
 
 let syntax_err lexbuf =
   let open Lexing in
   let p = lexbuf.lex_start_p in
-  let line = get_line p.pos_fname p.pos_bol in
+  let line = get_line p.pos_fname (Int_conversions.int_to_int64 p.pos_bol) in
   let col = p.pos_cnum - p.pos_bol in
   eprintf "File \"%s\", line %d, column %d:\n\n" p.pos_fname p.pos_lnum col;
   eprintf "  %s\n" line;
