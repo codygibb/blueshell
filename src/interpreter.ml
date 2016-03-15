@@ -121,6 +121,8 @@ let track_exn lnum f =
       raise (Tracked_exec_error (lnum, (Index_out_of_bounds i)))
   | Shell.Call_failed cmd ->
       raise (Tracked_exec_error (lnum, (Shellcall_failed cmd)))
+  | Sys_error msg ->
+      raise (Tracked_exec_error (lnum, (Illegal_state msg)))
 
 module Step = struct
   type t =
@@ -422,6 +424,9 @@ and exec_stmt env = function
   | Ast.Expr e -> let _ = eval_expr env e in Step.Next
   | Ast.Def (id, e) ->
       let e' = eval_expr env e in
+      (match e' with
+      | Prim.Closure (c_env, _, _) as c -> Env.bind c_env id c
+      | _ -> ());
       begin match id with
       | "_" -> Step.Next
       | _ -> Env.bind env id e'; Step.Next
@@ -438,7 +443,9 @@ and exec_stmt env = function
           unpack id_list t (fun (id, p) ->
             begin match id with
             | "_" -> ()
-            | _ -> Env.bind env id p
+            | _ ->
+                try Env.bind env id p
+                with Env.Var_already_defined _ -> Env.update env id p
             end
           );
           Step.Next
@@ -477,9 +484,14 @@ and exec_stmt env = function
           let old_dir = Sys.getcwd () in
           (try Unix.chdir (Shell.expand_path s)
            with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found s)));
-          let _ = exec_block (Env.extend env) block in
-          (try Unix.chdir old_dir
-           with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found old_dir)));
+          (try
+            exec_block (Env.extend env) block;
+            (try Unix.chdir old_dir
+             with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found old_dir)))
+           with e ->
+            (try Unix.chdir old_dir
+             with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found old_dir)));
+            raise e);
           Step.Next
       | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
       end

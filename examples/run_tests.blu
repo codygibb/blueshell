@@ -2,8 +2,7 @@ test_dir := argv[1]
 ok := true
 cd '~/dev/ocaml/blueshell' {
 	$> ocamlbuild -use-ocamlfind src/main.byte
-	tests := $> ls -A1 ${test_dir}/*.blu
-	tests = tests.substr(0, tests.len() - 1) # Remove trailing newline
+	tests := $> ls ${test_dir}/*.blu
 	for t in tests.split('\n') {
 		exp_out := $> cat ${t}.out
 		out, err := try $> ./main.byte ${t}

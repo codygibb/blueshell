@@ -1,0 +1,26 @@
+func walk(dir, ext, fn) {	
+	aux := func(dir) {
+		cd dir {
+			wd := $> pwd
+			files, err := try $> ls *.${ext}
+			if err == 0 {
+				for f in files.split('\n') {
+					fn(f)
+				}
+			}
+			dirs, err := try $> ls -d */
+			if err == 0 {
+				for d in dirs.split('\n') {
+					aux(d)
+				}
+			}
+		}
+	}
+	aux(dir)
+}
+
+l := []
+walk(argv[1], "blu", func(f) {
+	l.push(f)
+})
+print l

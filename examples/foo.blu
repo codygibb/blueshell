@@ -1,0 +1,23 @@
+$> mkdir -p .tmp/foo
+cd '.tmp/foo' {
+	$> python
+	out := $> which bash
+	print out + ' sucks!'
+}
+$> rmdir .tmp/foo
+$> rmdir .tmp
+
+func range(n) {
+	i := 0
+	return func() {
+		if i >= n {
+			return (0, false)
+		}
+		i += 1
+		return (i - 1, true)
+	}
+}
+
+for i in range(5) {
+	print i
+}

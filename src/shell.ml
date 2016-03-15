@@ -14,7 +14,9 @@ let capture_call cmd =
   let pinfo = Unix.create_process ~prog:"/bin/sh" ~args:["-c"; cmd] in
   let open Unix.Process_info in
   match Unix.waitpid pinfo.pid with
-  | Ok () ->  Result.Ok (fd_to_str pinfo.stdout)
+  | Ok () ->
+      let out = fd_to_str pinfo.stdout in
+      Result.Ok (String.rstrip ~drop:(fun c -> c = '\n') out)
   | Error (`Exit_non_zero i) ->
       Result.Error (Exit
         (fd_to_str pinfo.stdout, fd_to_str pinfo.stderr, i))
