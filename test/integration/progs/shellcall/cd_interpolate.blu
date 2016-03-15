@@ -1,0 +1,6 @@
+cd '~' {
+	print '~'
+}
+cd '$HOME' {
+	print '$HOME'
+}

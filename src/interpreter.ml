@@ -482,11 +482,11 @@ and exec_stmt env = function
       begin match eval_expr env dir_e with
       | Prim.Str s ->
           let old_dir = Sys.getcwd () in
-          (try Sys.chdir s with Sys_error _ ->
-            raise (Exec_error (Dir_not_found s)));
+          (try Unix.chdir (Shell.expand_path s)
+           with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found s)));
           let _ = exec_block (Env.extend env) block in
-          (try Sys.chdir old_dir with Sys_error _ ->
-            raise (Exec_error (Dir_not_found old_dir)));
+          (try Unix.chdir old_dir
+           with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found old_dir)));
           Step.Next
       | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
       end
