@@ -443,8 +443,42 @@ and exec_stmt env = function
         | p -> raise (Exec_error (Incorrect_type ("while", p, "bool")))
       in
       aux ()
-  | Ast.For(id, expr, stmt_list) -> Step.Next; (*TODO Implement for loops after creating tuples*)
-
+  | Ast.For(id, expr, stmt_list) -> 
+  	     let new_env = Env.extend env in 
+  	     match eval_expr new_env expr with
+  	     | Prim.Closure (c_env, arg_ids, body) ->
+     		Env.bind new_env id Prim.Unit;
+     		let rec aux () = 
+	  	    	match eval_expr c_env (Ast.Call(Ast.Func(arg_ids, body), [])) with
+	  	    	| Prim.Tuple t ->
+	  	    		match t with 
+	  	       	 	| x::x2::[] ->
+	  	       	    	match x2 with
+	  	       	     	|Prim.Bool b ->
+	  	       	       		Env.update new_env id x;	 
+		  	   	       		if b then
+		  	             		let _ = exec_block new_env stmt_list in
+		  	             		aux()
+		  	           		else Step.Next
+		  	         	| p -> raise (Exec_error (Incorrect_type("for", p, "bool")))
+		  	     	| p -> raise (Exec_error (Incorrect_type("tuple", p, "two-element-tuple")))
+		  	    | p -> raise (Exec_error (Incorrect_type("iterator", p, "tuple")))
+		  	in
+   	     	aux()
+   	     | Prim.List l ->
+   	     	Env.bind new_env id Prim.Unit;
+   	     	let rec aux (l, i) =
+   	     		let len = Blu_list.len l in
+   	     		if i < len then
+   	     			let item = Blu_list.get l i in  
+   	     			Env.update new_env id item;
+   	     			let _ = exec_block new_env stmt_list in
+   	     			aux(l, i + 1)
+   	     		else Step.Next
+   	     	in
+   	     	aux(l, 0)    	  
+   	     | p -> raise (Exec_error (Incorrect_type("for", p, "func")))
+  	   
 and exec_prog sl =
   let env = Env.create () in
   let rec step = function

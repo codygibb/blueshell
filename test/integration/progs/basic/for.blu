@@ -1,0 +1,16 @@
+func range (n) {
+	temp := 0
+	return func() {
+		if (temp == n) {
+			return (-1, false)
+		} else {
+			ret := (temp, true)
+			temp += 1
+			return ret
+		}
+	}
+}
+
+for num in range(3) {
+	print num
+} 
