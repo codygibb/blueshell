@@ -1,0 +1,9 @@
+func f() {
+	return func() {
+		return (5, "not-bool")
+	}
+}
+
+for x in f() {
+	print x
+}

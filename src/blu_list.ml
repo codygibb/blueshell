@@ -83,3 +83,5 @@ let to_str l ~v_to_str =
   Bigbuffer.add_string buf "]";
   Bigbuffer.contents buf
 
+let iter l ~f =
+  Util.range l.len (fun i -> f (get l i))

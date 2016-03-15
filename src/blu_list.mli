@@ -17,3 +17,5 @@ val len : 'a t -> int
 val capacity : 'a t -> int
 
 val to_str : 'a t -> v_to_str:('a -> string) -> string
+
+val iter : 'a t -> f:('a -> unit) -> unit

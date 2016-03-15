@@ -317,41 +317,52 @@ and eval_expr env = function
                   begin match args with
                   | [Prim.Int i] -> Prim.Str (String.sub s i (String.length s - i))
                   | [Prim.Int i1; Prim.Int i2] ->
-                      if i1 < 0 then raise (Exec_error(Index_out_of_bounds i1))
-                      else if i1 > String.length s then raise (Exec_error(Index_out_of_bounds i2))
-                      else if i1 > i2 then raise (Exec_error(Illegal_argument "start index must be < stop index"))
+                      if i1 < 0 then
+                        raise (Exec_error (Index_out_of_bounds i1))
+                      else if i1 > String.length s then
+                        raise (Exec_error (Index_out_of_bounds i2))
+                      else if i1 > i2 then
+                        raise (Exec_error (Illegal_argument "start index must be < stop index"))
                       else Prim.Str (String.sub s i1 (i2 - i1))
-                  | _ -> raise_err 0
+                  | _ -> raise_err 1
                   end
               | "split" ->
                   begin match args with
                   | [Prim.Str c] ->
+                      let arg_err = Exec_error (Illegal_argument
+                        "can only split on single character | '\\n' | '\\t'")
+                      in
+                      let split on =
+                        Prim.List (Blu_list.create
+                          (List.map (String.split s ~on) ~f:(fun s -> Prim.Str s)))
+                      in
                       begin match String.length c with
-                      | 1 -> Prim.List (Blu_list.create (List.map (String.split s ~on:(String.get c 0)) ~f:(fun x -> (Prim.Str x))))
+                      | 1 -> split (String.get c 0)
                       | 2 ->
                           begin match c with
-                          | "\\n" -> Prim.List (Blu_list.create (List.map (String.split s ~on:('\n')) ~f:(fun x -> (Prim.Str x))))
-                          | "\\t" -> Prim.List (Blu_list.create (List.map (String.split s ~on:('\t')) ~f:(fun x -> (Prim.Str x))))
-                          | _ -> raise (Exec_error(Illegal_argument "split can only take one character | \\n | \\t"))
+                          | "\\n" -> split '\n'
+                          | "\\t" -> split '\t'
+                          | _ -> raise arg_err
                           end
-                      | _ -> raise (Exec_error(Illegal_argument "split can only take one character | \\n | \\t"))
+                      | _ -> raise arg_err
                       end
-                  | _ -> raise_err 0
+                  | _ -> raise_err 1
                   end
               | _ -> raise (Violated_invariant "should have already made sure method is defined")
               end
+          | _ -> raise (Violated_invariant "should not be calling builtin method on non-builtin")
           end
       | p -> raise (Exec_error (Incorrect_type ("func-call", p, "func")))
       end
   | Ast.Field_lookup (e, id) ->
       begin match (eval_expr env e) with
-      | Prim.Object o -> Prim.Builtin_method (Object o, id)
-      | Prim.List l ->
-          if Set.mem Prim.list_builtins id then Prim.Builtin_method (List l, id)
+      | Prim.Object o as p -> Prim.Builtin_method (p, id)
+      | Prim.List l as p ->
+          if Set.mem Prim.list_builtins id then Prim.Builtin_method (p, id)
           else raise (Exec_error (Undefined_method ("list", id)))
-      | Prim.Dict d -> Prim.Builtin_method (Dict d, id)
-      | Prim.Str s ->
-          if Set.mem Prim.str_builtins id then Prim.Builtin_method (Prim.Str s, id)
+      | Prim.Dict d as p -> Prim.Builtin_method (p, id)
+      | Prim.Str s as p ->
+          if Set.mem Prim.str_builtins id then Prim.Builtin_method (p, id)
           else raise (Exec_error (Undefined_method ("str", id)))
       | p -> raise (Exec_error (Incorrect_type ("field-lookup", p, "object|list|dict")))
       end
@@ -405,38 +416,46 @@ and exec_block env sl =
 and unpack id_list tuple f =
   match (List.zip id_list tuple) with
   | Some l -> List.iter l ~f:f
-  | None -> raise (Exec_error (Incorrect_arg_num (List.length tuple, List.length id_list)))
+  | None ->
+      raise (Exec_error (Incorrect_arg_num
+        (List.length tuple, List.length id_list)))
 
 and exec_stmt env = function
   | Ast.Expr e -> let _ = eval_expr env e in Step.Next
-  | Ast.Def (id, e) -> let e' = eval_expr env e in
+  | Ast.Def (id, e) ->
+      let e' = eval_expr env e in
       begin match id with
       | "_" -> Step.Next
       | _ -> Env.bind env id e'; Step.Next
       end
-  | Ast.Asgn (id, e) -> let e' = eval_expr env e in
+  | Ast.Asgn (id, e) ->
+      let e' = eval_expr env e in
       begin match id with
       | "_" -> Step.Next
       | _ -> Env.update env id e'; Step.Next
       end
   | Ast.Multi_def (id_list, e) ->
       begin match eval_expr env e with
-      | Prim.Tuple t -> unpack id_list t (fun (id, p) ->
-          begin match id with
-          | "_" -> ()
-          | _ -> Env.bind env id p
-          end);
-      Step.Next
+      | Prim.Tuple t ->
+          unpack id_list t (fun (id, p) ->
+            begin match id with
+            | "_" -> ()
+            | _ -> Env.bind env id p
+            end
+          );
+          Step.Next
       | p -> raise (Exec_error (Incorrect_type ("unpack-def", p, "tuple")))
       end
   | Ast.Multi_asgn (id_list, e) ->
       begin match eval_expr env e with
-      | Prim.Tuple t -> unpack id_list t (fun (id, p) ->
-          begin match id with
-          | "_" -> ()
-          | _ -> Env.update env id p
-          end);
-      Step.Next
+      | Prim.Tuple t ->
+          unpack id_list t (fun (id, p) ->
+            begin match id with
+            | "_" -> ()
+            | _ -> Env.update env id p
+            end
+          );
+          Step.Next
       | p -> raise (Exec_error (Incorrect_type ("unpack-asgn", p, "tuple")))
       end
   | Ast.Print e -> (eval_expr env e) |> Prim.to_str |> print_endline; Step.Next
@@ -458,9 +477,11 @@ and exec_stmt env = function
       begin match eval_expr env dir_e with
       | Prim.Str s ->
           let old_dir = Sys.getcwd () in
-          (try Sys.chdir s with Sys_error _ -> raise (Exec_error (Dir_not_found s)));
-          exec_block (Env.extend env) block;
-          (try Sys.chdir old_dir with Sys_error _ -> raise (Exec_error (Dir_not_found old_dir)));
+          (try Sys.chdir s with Sys_error _ ->
+            raise (Exec_error (Dir_not_found s)));
+          let _ = exec_block (Env.extend env) block in
+          (try Sys.chdir old_dir with Sys_error _ ->
+            raise (Exec_error (Dir_not_found old_dir)));
           Step.Next
       | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
       end
@@ -475,42 +496,34 @@ and exec_stmt env = function
         | p -> raise (Exec_error (Incorrect_type ("while", p, "bool")))
       in
       aux ()
-  | Ast.For(id, expr, stmt_list) -> 
-  	     let new_env = Env.extend env in 
-  	     match eval_expr new_env expr with
-  	     | Prim.Closure (c_env, arg_ids, body) ->
-     		Env.bind new_env id Prim.Unit;
-     		let rec aux () = 
-	  	    	match eval_expr c_env (Ast.Call(Ast.Func(arg_ids, body), [])) with
-	  	    	| Prim.Tuple t ->
-	  	    		match t with 
-	  	       	 	| x::x2::[] ->
-	  	       	    	match x2 with
-	  	       	     	|Prim.Bool b ->
-	  	       	       		Env.update new_env id x;	 
-		  	   	       		if b then
-		  	             		let _ = exec_block new_env stmt_list in
-		  	             		aux()
-		  	           		else Step.Next
-		  	         	| p -> raise (Exec_error (Incorrect_type("for", p, "bool")))
-		  	     	| p -> raise (Exec_error (Incorrect_type("tuple", p, "two-element-tuple")))
-		  	    | p -> raise (Exec_error (Incorrect_type("iterator", p, "tuple")))
-		  	in
-   	     	aux()
-   	     | Prim.List l ->
-   	     	Env.bind new_env id Prim.Unit;
-   	     	let rec aux (l, i) =
-   	     		let len = Blu_list.len l in
-   	     		if i < len then
-   	     			let item = Blu_list.get l i in  
-   	     			Env.update new_env id item;
-   	     			let _ = exec_block new_env stmt_list in
-   	     			aux(l, i + 1)
-   	     		else Step.Next
-   	     	in
-   	     	aux(l, 0)    	  
-   	     | p -> raise (Exec_error (Incorrect_type("for", p, "func")))
-  	   
+  | Ast.For (id, e, stmt_list) ->
+      begin match eval_expr env e with
+      | Prim.Closure (c_env, arg_ids, body) ->
+          (* Returned closure should not accept any arguments, so pass []. *)
+          let call = Ast.Call (Ast.Func (arg_ids, body), []) in
+          let rec aux () =
+            let env' = Env.extend env in
+            match eval_expr c_env call with
+            | Prim.Tuple (p :: (Prim.Bool b) :: []) ->
+                Env.bind env' id p;
+                if b then
+                  let _ = exec_block env' stmt_list in
+                  aux()
+                else Step.Next
+            | p -> raise (Exec_error (Incorrect_type ("iter", p, "(prim, bool)")))
+          in
+          aux ()
+      | Prim.List l ->
+          Blu_list.iter l ~f:(fun p ->
+            let env' = Env.extend env in
+            Env.bind env' id p;
+            let _ = exec_block env' stmt_list in
+            ()
+          );
+          Step.Next
+      | p -> raise (Exec_error (Incorrect_type ("for", p, "list | func -> (prim, bool)")))
+      end
+
 and exec_prog sl =
   let env = Env.create () in
   let rec step = function
