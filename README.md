@@ -1,8 +1,42 @@
 # blueshell
-Lightweight shell scripting language
 
-![Image of Mario Kart blue shell]
-(http://orig02.deviantart.net/e538/f/2013/036/b/b/blue_shell_the_______by_dreamingsora-d5tye41.png)
+A lightweight shell scripting language
+
+<img src="assets/blueshell.png" width="200"> 
+
+Blueshell focuses on allowing the programmer to write better Bash scripts. Any Bash script can and should be instead written in Blueshell. 
+
+**But why?**
+
+Blueshell offers predictable syntax and useful high-level constructs, while still providing a direct and simple interface to execute Bash commands.
+
+Some useful constructs allow direct and simple access to the shell:
+
+`$> touch foo.txt` Runs a command, exiting the script if the command fails. Stdout, stderr, and stdin are connected directly to the terminal. 
+
+`out = $> ls` Runs a command and captures its output, exiting the script if the command fails. Stderr and stdin are ignored.
+
+`out, err = try $> python might_fail.py` Try to run a command and capture its output. If the command exits non-zero, then the error code is also returned and the script does not exit.
+
+`$> echo "${'Hello, ' + 'world!'}" > ${file}.txt` Expressions can be injected into commands with `${E}`.
+
+`cd '~/dir' { ... }` Execute a block of code within a given directory.
+
+Example:
+
+    cd '~/dev/blueshell' {
+    	$> ocamlbuild -use-ocamlfind src/main.byte
+    	tests := $> ls test/integration/progs/basic/*.blu
+    	for t in tests.split('\n') {
+    		exp_out := $> cat ${t}.out
+    		out, err := try $> ./main.byte ${t}
+    		if err != 0 || out != exp_out {
+    			print t + ' failed'
+    		}
+    	}
+    }
+
+The above code compiles the Blueshell interpreter and runs all of our basic integration tests, making sure all of the tests exit cleanly and produce expected output!
 
 ## Built-in
 
