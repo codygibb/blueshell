@@ -41,7 +41,7 @@ Example:
         print 'All tests passed!'
     }
 
-The above code compiles the Blueshell interpreter and runs all of our basic integration tests, making sure all of the tests exit cleanly and produce expected output!
+The above Blueshell script compiles the Blueshell interpreter and runs all of our basic integration tests, making sure all of the tests exit cleanly and produce expected output!
 
 ## Built-in
 
