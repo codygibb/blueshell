@@ -91,5 +91,5 @@ Make sure the tests pass:
     
 To run arbitrary `.blu` files:
 
-    $ ocamlbuild -use-ocamlfind main.byte
+    $ ./build.sh
     $ ./main.byte test.blu
