@@ -24,6 +24,7 @@ Some useful constructs allow direct and simple access to the shell:
 
 Example:
 
+    ok := true
     cd '~/dev/blueshell' {
     	$> ocamlbuild -use-ocamlfind src/main.byte
     	tests := $> ls test/integration/progs/basic/*.blu
@@ -32,8 +33,12 @@ Example:
     		out, err := try $> ./main.byte ${t}
     		if err != 0 || out != exp_out {
     			print t + ' failed'
+    			ok = false
     		}
     	}
+    }
+    if ok {
+        print 'All tests passed!'
     }
 
 The above code compiles the Blueshell interpreter and runs all of our basic integration tests, making sure all of the tests exit cleanly and produce expected output!
