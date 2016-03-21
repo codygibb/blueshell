@@ -59,7 +59,7 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `s.len()` Returns length of `s`.
 
-`s.split(on)` Splits `s` according to delimiter str `s` and returns list of substrings.
+`s.split(delim)` Splits `s` according to delimiter str `delim` and returns list of substrings.
 
 `s.replace(pattern, s2)` **TODO** Replaces substrings in `s` matched by regex string `pattern` with string `s2`.
 
@@ -108,9 +108,9 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `f.lines()` **TODO** Returns iterator over the lines of `f`.
 
-`f.write(s)` **TODO** Overwrite contents of `f` with string `s`.
+`f.write(s)` **TODO** Overwrites contents of `f` with string `s`.
 
-`f.append(s)` **TODO** Append string `s` to the end of `f`.
+`f.append(s)` **TODO** Appends string `s` to the end of `f`.
 
 ## Build
 
