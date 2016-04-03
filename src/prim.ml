@@ -9,10 +9,9 @@ type t =
   | Str of string
   | Closure of (t Env.t * Ast.id list * Ast.stmt_list)
   | Builtin_method of t * Ast.id
-  | List of t Blu_list.t
-  | Dict of t Blu_dict.t
+  | List of t Blist.t
+  | Dict of t Bdict.t
   | Tuple of t list
-  | Object of Blu_object.t
 
 let tuple_to_str t v_to_str =
   let len = List.length t in
@@ -31,17 +30,16 @@ let rec to_str = function
   | Closure _ -> "<func>"
   | Builtin_method _ -> "<func>"
   | List l ->
-      Blu_list.to_str l ~v_to_str:(fun p ->
+      Blist.to_str l ~v_to_str:(fun p ->
         match p with
         | Str s -> "\"" ^ s ^ "\""
         | p -> to_str p)
   | Dict d ->
-      Blu_dict.to_str d ~v_to_str:(fun p ->
+      Bdict.to_str d ~v_to_str:(fun p ->
         match p with
         | Str s -> "\"" ^ s ^ "\""
         | p -> to_str p)
   | Tuple t -> tuple_to_str t to_str
-  | Object o -> "<object>"
 
 let rec type_str = function
   | Unit -> "unit"

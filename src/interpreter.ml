@@ -116,9 +116,9 @@ let track_exn lnum f =
       raise (Tracked_exec_error (lnum, (Var_already_defined id)))
   | Env.Var_not_found id ->
       raise (Tracked_exec_error (lnum, (Var_not_found id)))
-  | Blu_dict.Key_not_found k ->
+  | Bdict.Key_not_found k ->
       raise (Tracked_exec_error (lnum, (Key_not_found k)))
-  | Blu_list.Index_out_of_bounds i ->
+  | Blist.Index_out_of_bounds i ->
       raise (Tracked_exec_error (lnum, (Index_out_of_bounds i)))
   | Shell.Call_failed cmd ->
       raise (Tracked_exec_error (lnum, (Shellcall_failed cmd)))
@@ -286,13 +286,13 @@ and eval_expr env = function
               begin match mid with
               | "push" ->
                   begin match args with
-                  | [p] -> Blu_list.push l p; Prim.Unit
+                  | [p] -> Blist.push l p; Prim.Unit
                   | _ -> raise_err 1
                   end
               | "pop" ->
                   begin match args with
                   | [] ->
-                      begin match Blu_list.pop l with
+                      begin match Blist.pop l with
                       | Some p -> p
                       | None -> raise (Exec_error (Illegal_state "cannot pop from empty list"))
                       end
@@ -300,13 +300,12 @@ and eval_expr env = function
                   end
               | "len" ->
                   begin match args with
-                  | [] -> Prim.Int (Blu_list.len l)
+                  | [] -> Prim.Int (Blist.len l)
                   | _ -> raise_err 0
                   end
               | _ -> raise (Violated_invariant "should have already made sure method is defined")
               end
           | Prim.Dict d -> Prim.Unit
-          | Prim.Object o -> Prim.Unit
           | Prim.Str s ->
               begin match mid with
               | "len" ->
@@ -334,7 +333,7 @@ and eval_expr env = function
                         "can only split on single character | '\\n' | '\\t'")
                       in
                       let split on =
-                        Prim.List (Blu_list.create
+                        Prim.List (Blist.create
                           (List.map (String.split s ~on) ~f:(fun s -> Prim.Str s)))
                       in
                       begin match String.length c with
@@ -357,7 +356,6 @@ and eval_expr env = function
       end
   | Ast.Field_lookup (e, id) ->
       begin match (eval_expr env e) with
-      | Prim.Object o as p -> Prim.Builtin_method (p, id)
       | Prim.List l as p ->
           if Set.mem Prim.list_builtins id then Prim.Builtin_method (p, id)
           else raise (Exec_error (Undefined_method ("list", id)))
@@ -367,13 +365,13 @@ and eval_expr env = function
           else raise (Exec_error (Undefined_method ("str", id)))
       | p -> raise (Exec_error (Incorrect_type ("field-lookup", p, "object|list|dict")))
       end
-  | Ast.List expr_list -> Prim.List (Blu_list.create (List.map expr_list ~f:(eval_expr env)))
+  | Ast.List expr_list -> Prim.List (Blist.create (List.map expr_list ~f:(eval_expr env)))
   | Ast.Dict kv_list ->
-      Prim.Dict (Blu_dict.create (List.map kv_list ~f:(fun (k, v) -> (k, eval_expr env v))))
+      Prim.Dict (Bdict.create (List.map kv_list ~f:(fun (k, v) -> (k, eval_expr env v))))
   | Ast.Get (e1, e2) ->
       begin match eval_expr env e1, eval_expr env e2 with
-      | Prim.List l, Prim.Int i -> Blu_list.get l i
-      | Prim.Dict d, Prim.Str s -> Blu_dict.get d s
+      | Prim.List l, Prim.Int i -> Blist.get l i
+      | Prim.Dict d, Prim.Str s -> Bdict.get d s
       | Prim.Str s, Prim.Int i ->
           if i < 0 || i >= String.length s then raise (Exec_error (Index_out_of_bounds i))
           else Prim.Str (Char.to_string (String.get s i))
@@ -457,8 +455,8 @@ and exec_stmt env = function
       end
   | Ast.Set (e1, e2, e3) ->
       (match eval_expr env e1, eval_expr env e2, eval_expr env e3 with
-      | Prim.List l, Prim.Int i, p -> Blu_list.set l i p
-      | Prim.Dict d, Prim.Str s, p -> Blu_dict.set d s p
+      | Prim.List l, Prim.Int i, p -> Blist.set l i p
+      | Prim.Dict d, Prim.Str s, p -> Bdict.set d s p
       | p1, p2, _ ->
           raise (Exec_error (Incorrect_two_type
             ("set", (p1, "list|dict"), (p2, "int|str")))));
@@ -509,7 +507,7 @@ and exec_stmt env = function
           in
           aux ()
       | Prim.List l ->
-          Blu_list.iter l ~f:(fun p ->
+          Blist.iter l ~f:(fun p ->
             let env' = Env.extend env in
             Env.bind env' id p;
             let _ = exec_block env' stmt_list in
@@ -541,7 +539,7 @@ and exec_block env sl =
 and exec_prog sl argv =
   let env = Env.create () in
   Env.bind env "argv"
-    (Prim.List (Blu_list.create (List.map argv ~f:(fun s -> Prim.Str s))));
+    (Prim.List (Blist.create (List.map argv ~f:(fun s -> Prim.Str s))));
   let rec step = function
     | [] -> ()
     | (lnum, s) :: sl' ->
