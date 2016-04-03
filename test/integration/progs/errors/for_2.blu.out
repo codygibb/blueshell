@@ -1,1 +1,1 @@
-error: Incorrect_type (for, int, list | func -> (prim, bool))
+error@1: Incorrect_type (for, int, list | func -> (prim, bool))

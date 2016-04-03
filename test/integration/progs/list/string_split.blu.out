@@ -1,5 +1,5 @@
 6
 ["hello", "this", "is", "a", "test", "string"]
-["hello", "hello", "hello", ""]
-4
+["hello", "hello", "hello"]
+3
 hello

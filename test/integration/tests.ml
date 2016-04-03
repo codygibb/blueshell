@@ -49,8 +49,8 @@ let _  =
       begin
         try Interpreter.run (Interpreter.get_lexbuf infile) [infile]
         with
-        | Interpreter.Tracked_exec_error (_, err) ->
-            printf "error: %s\n" (Interpreter.err_to_str err)
+        | Interpreter.Tracked_exec_error (lnum, err) ->
+            printf "error@%d: %s\n" lnum (Interpreter.err_to_str err)
       end;
       rm_tmp ();
 

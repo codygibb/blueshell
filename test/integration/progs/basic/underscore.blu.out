@@ -2,4 +2,4 @@
 in hello
 in hello
 0
-error: Var_not_found _
+error@15: Var_not_found _

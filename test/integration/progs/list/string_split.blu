@@ -3,7 +3,7 @@ l := s.split(" ")
 print l.len()
 print l
 
-file := ".tmp.txt"
+file := ".tmp/out.txt"
 $> echo "hello" > ${file}
 $> echo "hello" >> ${file}
 $> echo "hello" >> ${file}

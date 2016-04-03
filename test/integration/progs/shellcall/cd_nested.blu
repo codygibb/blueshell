@@ -1,18 +1,23 @@
 $> mkdir -p .tmp/foo/bar/baz
 $> mkdir -p .tmp/foo/meow/catz
-cd '.tmp/foo' {
-	$> pwd	
-	cd 'bar' {
-		$> pwd
-	}
-	$> pwd
-	cd 'meow' {
-		$> pwd
-		cd 'catz' {
-			$> pwd
-		}
-		$> pwd
-	}
-	$> pwd
+
+func cwd() {
+	$> basename $PWD
 }
-$> pwd
+
+cd '.tmp/foo' {
+	cwd()
+	cd 'bar' {
+		cwd()
+	}
+	cwd()
+	cd 'meow' {
+		cwd()
+		cd 'catz' {
+			cwd()
+		}
+		cwd()
+	}
+	cwd()
+}
+cwd()

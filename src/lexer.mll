@@ -12,6 +12,7 @@
         pos_bol = lexbuf.lex_curr_pos;
         pos_lnum = pos.pos_lnum + 1
       }
+  ;;
 }
 
 let whitespace = [' ' '\t']+
@@ -28,7 +29,7 @@ let shellcall = "$>" [^'\n']*
 rule read = parse
   | comment { read lexbuf }
   | whitespace { read lexbuf }
-  | '\n' { next_line lexbuf; NEWLINE (lexbuf.lex_start_p.pos_lnum) }
+  | '\n' { next_line lexbuf; NEWLINE }
   | "func" { FUNC }
   | "print" { PRINT }
   | "return" { RETURN }

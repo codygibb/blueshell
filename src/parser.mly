@@ -1,5 +1,6 @@
 %{
   open Ast 
+  open Lexing
 %}
 
 %token <int> INT
@@ -34,7 +35,7 @@
 %token QUESTIONMARK
 %token DOT
 %token TRY
-%token <int> NEWLINE
+%token NEWLINE
 %token EOF
 
 %right QUESTIONMARK COLON
@@ -69,7 +70,7 @@ inline_expr:
   | e=expr; SEMICOLON { e }
 
 stmt_list:
-  | s=stmt; lnum=NEWLINE; sl=stmt_list { (Some lnum, s) :: sl }
+  | s=stmt; NEWLINE; sl=stmt_list { ($startpos.pos_lnum, s) :: sl }
   | NEWLINE; sl=stmt_list { sl }
   | { [] }
 
@@ -81,15 +82,16 @@ stmt:
       { Def (f, Func (l, b)) }
   | PRINT; e=expr { Print e }
   | RETURN; e=expr { Return e }
-  | IF; e=expr; LBRACE; tb=block; RBRACE; eif=eif_list { If_then_else (e, tb, eif) }
+  | IF; e=expr; LBRACE; tb=block; RBRACE; eif=eif_list
+      { If_then_else (e, tb, eif) }
   | c=expr; LBRACKET; k=expr; RBRACKET; ASGN; v=expr
       { Set (c, k, v) }
   | x=ID; o=bin_op_asgn; e=expr { Asgn (x, Bin_op(o, Id x, e)) }
   | x=ID; BOOLANDASGN; e=expr { Asgn (x, And (Id x, e)) }
   | x=ID; BOOLORASGN; e=expr { Asgn (x, Or (Id x, e)) }
   | CD; e=expr; LBRACE; b=block; RBRACE { Cd (e, b) }
-  | WHILE; e=expr; LBRACE; b=block; RBRACE; { While(e, b)}
-  | FOR; x=ID; IN; e=expr; LBRACE; b=block; RBRACE; {For(x, e, b)}
+  | WHILE; e=expr; LBRACE; b=block; RBRACE { While (e, b) }
+  | FOR; x=ID; IN; e=expr; LBRACE; b=block; RBRACE { For (x, e, b) }
   | x=ID; DEF; sc=SHELLCALL { Def (x, Captured_shellcall sc) }
   | x=ID; ASGN; sc=SHELLCALL { Asgn (x, Captured_shellcall sc) }
   | sc=SHELLCALL { Shellcall sc }
@@ -99,13 +101,15 @@ stmt:
       { Multi_asgn ([out; err], Try_shellcall sc) }
 
 eif_list:
-  | ELSE; IF; e=expr; LBRACE; b=block; RBRACE; eif=eif_list { [(None, If_then_else(e, b, eif))] }
+  | ELSE; IF; e=expr; LBRACE; b=block; RBRACE; eif=eif_list
+      { [($startpos.pos_lnum, If_then_else (e, b, eif))] }
   | ELSE; LBRACE; b=block; RBRACE { b }
   | { [] }
 
+(* Blocks are distinct from stmt_lists because they can be inlined. *)
 block:
-  | s=stmt { [(None, s)] }
-  | lnum=NEWLINE; s=stmt { [(Some (lnum + 1), s)] }
+  | s=stmt { [($startpos.pos_lnum, s)] }
+  | NEWLINE; s=stmt { [($endpos.pos_lnum, s)] }
   | sl=stmt_list { sl }
 
 expr:

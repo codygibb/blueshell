@@ -1,0 +1,12 @@
+# Make sure correct lnum is tracked no matter how deep
+# into if/else if/else the error is.
+
+if false {
+	print "?"
+} else if false {
+	print "?"
+} else if 5 {
+	print "?"
+} else {
+	print "?"
+}

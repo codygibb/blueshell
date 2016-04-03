@@ -6,6 +6,7 @@ exception Violated_invariant of string
 
 exception Not_implemented of string
 
+(* TODO: Comment each constructor. *)
 type err =
   | Var_already_defined of Ast.id
   | Var_not_found of Ast.id
@@ -397,22 +398,6 @@ and eval_expr env = function
           Prim.Tuple [Prim.Str stdout; Prim.Int 2] (* TODO: signals *)
       end
 
-and exec_block env sl =
-  let env' = Env.extend env in
-  let rec step sl =
-    let aux s sl' =
-      match exec_stmt env' s with
-      | Step.Next -> step sl'
-      | Step.Return v -> Step.Return v
-    in
-    match sl with
-    | [] -> Step.Next
-      (* No line number info (block inlined), cannot track exception *)
-    | (None, s) :: sl' -> aux s sl'
-    | (Some lnum, s) :: sl' -> track_exn lnum (fun () -> aux s sl')
-  in
-  step sl
-
 and unpack id_list tuple f =
   match (List.zip id_list tuple) with
   | Some l -> List.iter l ~f:f
@@ -539,15 +524,27 @@ and exec_stmt env = function
       Shell.call (interpolate_shellcall env s);
       Step.Next
 
+and exec_block env sl =
+  let env' = Env.extend env in
+  let rec step sl =
+    let aux s sl' =
+      match exec_stmt env' s with
+      | Step.Next -> step sl'
+      | Step.Return v -> Step.Return v
+    in
+    match sl with
+    | [] -> Step.Next
+    | (lnum, s) :: sl' -> track_exn lnum (fun () -> aux s sl')
+  in
+  step sl
+
 and exec_prog sl argv =
   let env = Env.create () in
   Env.bind env "argv"
     (Prim.List (Blu_list.create (List.map argv ~f:(fun s -> Prim.Str s))));
   let rec step = function
     | [] -> ()
-    | (None, _) :: _ ->
-        raise (Violated_invariant "main program statement has no line number")
-    | (Some lnum, s) :: sl' ->
+    | (lnum, s) :: sl' ->
         track_exn lnum (fun () ->
           match exec_stmt env s with
           | Step.Next -> step sl'

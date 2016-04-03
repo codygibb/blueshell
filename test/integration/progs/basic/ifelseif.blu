@@ -1,28 +1,28 @@
-if (false) {
+if false {
   print "don't print this"
-} else if (1 == 1) {
+} else if 1 == 1 {
   print "print this"
-} else if (1 == 1) {
+} else if 1 == 1 {
   print "don't print this"
 } else {
   print "don't print this"
 }
 
-if (true) {
+if true {
   print "print this"
 }
 
-if (false) {
+if false {
   print "don't print this"
 }
 
-if (false) {
+if false {
   print "don't print this"
 } else {
   print "print this"
 }
 
-if (true) {
+if true {
   print "print this"
 } else {
   print "don't print this"
