@@ -21,6 +21,7 @@ type err =
   | Key_not_found of string
   | Undefined_method of string * string
   | Index_out_of_bounds of int
+  | Invalid_slice of int * int
   | Shellcall_failed of string
   | Captured_shellcall_failed of string * Shell.err
   | Dir_not_found of string
@@ -51,6 +52,7 @@ let err_to_str = function
   | Key_not_found k -> sprintf "Key_not_found %s" k
   | Undefined_method (t, m) -> sprintf "Undefined_method (%s, %s)" t m
   | Index_out_of_bounds i -> sprintf "Index_out_of_bounds %d" i
+  | Invalid_slice (start, stop) -> sprintf "Invalid_slice (%d, %d)" start stop
   | Shellcall_failed cmd -> sprintf "Shellcall_failed %s" cmd
   | Captured_shellcall_failed (cmd, _) -> sprintf "Captured_shellcall_failed %s" cmd
   | Dir_not_found dir -> sprintf "Dir_not_found %s" dir
@@ -82,6 +84,7 @@ let get_err_msg = function
   | Key_not_found k -> sprintf "key not found: '%s'" k
   | Undefined_method (t, m) -> sprintf "method '%s' not defined for type '%s'" m t
   | Index_out_of_bounds i -> sprintf "index out of bounds: %d" i
+  | Invalid_slice (start, stop) -> sprintf "invalid slice: %d to %d" start stop
   | Shellcall_failed cmd -> sprintf "Command failed: %s" cmd
   | Captured_shellcall_failed (cmd, err) ->
       begin match err with
@@ -108,6 +111,8 @@ exception Exec_error of err
 
 exception Tracked_exec_error of int * err
 
+(* Converts internal module exceptions to external facing exceptions, and
+ * tags each with the given line number. *)
 let track_exn lnum f =
   try f ()
   with
@@ -120,6 +125,8 @@ let track_exn lnum f =
       raise (Tracked_exec_error (lnum, (Key_not_found k)))
   | Blist.Index_out_of_bounds i ->
       raise (Tracked_exec_error (lnum, (Index_out_of_bounds i)))
+  | Blist.Invalid_slice (start, stop) ->
+      raise (Tracked_exec_error (lnum, (Invalid_slice (start, stop))))
   | Shell.Call_failed cmd ->
       raise (Tracked_exec_error (lnum, (Shellcall_failed cmd)))
   | Sys_error msg ->
@@ -378,6 +385,27 @@ and eval_expr env = function
       | p1, p2 ->
           raise (Exec_error (Incorrect_two_type
             ("get", (p1, "list|dict|str"), (p2, "int|str"))))
+      end
+  | Ast.Slice (e, start_e_opt, stop_e_opt) ->
+      let eval_i e_opt =
+        match e_opt with
+        | Some e ->
+            begin match eval_expr env e with
+            | Prim.Int i -> Some i
+            | p -> raise (Exec_error (Incorrect_type ("slice-index", p, "int")))
+            end
+        | None -> None
+      in
+      let start_opt = eval_i start_e_opt in
+      let stop_opt = eval_i stop_e_opt in
+      begin match eval_expr env e with
+      | Prim.List l ->
+          let start = Option.value start_opt ~default:0 in
+          let stop = Option.value stop_opt ~default:(Blist.len l) in
+          Prim.List (Blist.slice l start stop)
+      | Prim.Str s ->
+          (* TODO *)
+          raise (Not_implemented "string slice")
       end
   | Ast.Tuple expr_list -> Prim.Tuple (List.map expr_list ~f:(eval_expr env))
   | Ast.Captured_shellcall s ->

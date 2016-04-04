@@ -3,14 +3,18 @@ open Printf
 
 exception Index_out_of_bounds of int
 
+exception Invalid_slice of int * int
+
 exception Violated_invariant
+
+let default_cap = 16
 
 type 'a t = 
   { mutable arr : 'a option Array.t;
     mutable len : int;
   }
 
-let create ?(min_cap=16) l = 
+let create ?(min_cap=default_cap) l = 
   let len = List.length l in
   let arr = Array.create ~len:(max min_cap len) None in
   List.iteri l ~f:(fun i v -> Array.set arr i (Some v));
@@ -85,3 +89,35 @@ let to_str l ~v_to_str =
 
 let iter l ~f =
   Util.range l.len (fun i -> f (get l i))
+
+let slice l start stop =
+  (if stop > l.len then raise (Index_out_of_bounds stop));
+  (if start < 0 then raise (Index_out_of_bounds start));
+  let norm_stop =
+    if stop < 0 then
+      let norm_stop = l.len + stop in
+      (if norm_stop < 0 then raise (Index_out_of_bounds stop));
+      norm_stop
+    else stop
+  in
+  (if norm_stop < start then raise (Invalid_slice (start, stop)));
+  if norm_stop = 0 then
+    (* Array.slice will normalize 0 to Array.length, which we don't want, so
+     * we handle that case manually. Note that if norm_stop is 0, start must
+     * be 0. *)
+    { arr = Array.create ~len:default_cap None;
+      len = 0 }
+  else
+    let new_arr = Array.slice l.arr start norm_stop in
+    { arr = new_arr;
+      len = Array.length new_arr
+    }
+
+let to_list l =
+  (*Array.to_list (Array.slice l.arr 0 l.len)*)
+  if l.len = 0 then []
+  else
+    List.map (Array.to_list (Array.slice l.arr 0 l.len)) ~f:(
+      fun o -> Option.value_exn o
+    )
+

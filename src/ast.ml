@@ -46,6 +46,7 @@ and expr =
   | List of expr list
   | Dict of (string * expr) list
   | Get of expr * expr
+  | Slice of expr * expr option * expr option
   | Tuple of expr list
   | Captured_shellcall of string
   | Try_shellcall of string

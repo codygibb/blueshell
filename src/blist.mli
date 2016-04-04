@@ -1,5 +1,7 @@
 exception Index_out_of_bounds of int
 
+exception Invalid_slice of int * int
+
 type 'a t
 
 val create : ?min_cap:int -> 'a list -> 'a t
@@ -19,3 +21,7 @@ val capacity : 'a t -> int
 val to_str : 'a t -> v_to_str:('a -> string) -> string
 
 val iter : 'a t -> f:('a -> unit) -> unit
+
+val slice : 'a t -> int -> int -> 'a t
+
+val to_list : 'a t -> 'a list

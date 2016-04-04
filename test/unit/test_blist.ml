@@ -2,6 +2,8 @@ open Core.Std
 open OUnit2
 open Blist
 
+let int_list_to_str l = String.concat ~sep:" " (List.map l ~f:string_of_int)
+
 let suite =
   "Blist">:::
   [
@@ -58,5 +60,19 @@ let suite =
        * the capacity down to 0. *)
       assert_equal ~printer:string_of_int 4 (capacity l);
       ()
-    )
+    );
+    "slice">::(fun ctx ->
+      let l = create [4; 5; 6; 7] ~min_cap:4 in
+      assert_equal [5; 6] (to_list (slice l 1 3));
+      assert_equal [4; 5; 6] (to_list (slice l 0 (-1)));
+      assert_equal ~printer:int_list_to_str [] (to_list (slice l 0 (-4)));
+      assert_raises (Index_out_of_bounds (-1)) (fun () -> slice l (-1) 3);
+      assert_raises (Index_out_of_bounds 5) (fun () -> slice l 0 5);
+      assert_raises (Invalid_slice (1, -4)) (fun () -> slice l 1 (-4));
+      (* Force a resize and make sure everything still works. *)
+      push l 8;
+      assert_equal [4; 5; 6; 7] (to_list (slice l 0 (-1)));
+      assert_raises (Index_out_of_bounds 6) (fun () -> (slice l 0 6));
+      ()
+    );
   ]

@@ -127,6 +127,12 @@ expr:
   | LBRACKET; l=expr_list; RBRACKET { List l }
   | LBRACE; l=kv_list; RBRACE { Dict l }
   | c=expr; LBRACKET; k=expr; RBRACKET { Get (c, k) }
+  | c=expr; LBRACKET; start=expr; COLON; stop=expr; RBRACKET
+     { Slice (c, Some start, Some stop) }
+  | c=expr; LBRACKET; start=expr; COLON; RBRACKET
+     { Slice (c, Some start, None) }
+  | c=expr; LBRACKET; COLON; stop=expr; RBRACKET
+     { Slice (c, None, Some stop) }
   | LPAREN; l=expr_list; RPAREN { Tuple l }
   | e1=expr; PLUS; e2=expr { Bin_op (Add, e1, e2) }
   | e1=expr; MINUS; e2=expr { Bin_op (Sub, e1, e2) }
