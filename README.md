@@ -100,7 +100,7 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `d.len()` Returns length of `d`.
 
-`d.del(k)` **TODO** Deletes key `k` from `d`.
+`d.del(k)` Deletes key `k` from `d`.
 
 #### file methods
 
