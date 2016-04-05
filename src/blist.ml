@@ -90,17 +90,21 @@ let to_str l ~v_to_str =
 let iter l ~f =
   Util.range l.len (fun i -> f (get l i))
 
-let slice l start stop =
-  (if stop > l.len then raise (Index_out_of_bounds stop));
+let norm_slice_exn start stop len =
+  (if stop > len then raise (Index_out_of_bounds stop));
   (if start < 0 then raise (Index_out_of_bounds start));
   let norm_stop =
     if stop < 0 then
-      let norm_stop = l.len + stop in
+      let norm_stop = len + stop in
       (if norm_stop < 0 then raise (Index_out_of_bounds stop));
       norm_stop
     else stop
   in
   (if norm_stop < start then raise (Invalid_slice (start, stop)));
+  norm_stop
+
+let slice l start stop =
+  let norm_stop = norm_slice_exn start stop l.len in
   if norm_stop = 0 then
     (* Array.slice will normalize 0 to Array.length, which we don't want, so
      * we handle that case manually. Note that if norm_stop is 0, start must

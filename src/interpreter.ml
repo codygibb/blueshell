@@ -320,19 +320,6 @@ and eval_expr env = function
                   | [] -> Prim.Int (String.length s)
                   | _ -> raise_err 0
                   end
-              | "substr" ->
-                  begin match args with
-                  | [Prim.Int i] -> Prim.Str (String.sub s i (String.length s - i))
-                  | [Prim.Int i1; Prim.Int i2] ->
-                      if i1 < 0 then
-                        raise (Exec_error (Index_out_of_bounds i1))
-                      else if i1 > String.length s then
-                        raise (Exec_error (Index_out_of_bounds i2))
-                      else if i1 > i2 then
-                        raise (Exec_error (Illegal_argument "start index must be < stop index"))
-                      else Prim.Str (String.sub s i1 (i2 - i1))
-                  | _ -> raise_err 1
-                  end
               | "split" ->
                   begin match args with
                   | [Prim.Str c] ->
@@ -404,8 +391,17 @@ and eval_expr env = function
           let stop = Option.value stop_opt ~default:(Blist.len l) in
           Prim.List (Blist.slice l start stop)
       | Prim.Str s ->
-          (* TODO *)
-          raise (Not_implemented "string slice")
+          let len = String.length s in
+          let start = Option.value start_opt ~default:0 in
+          let stop = Option.value stop_opt ~default:len in
+          let norm_stop = Blist.norm_slice_exn start stop len in
+          if norm_stop = 0 then
+            (* String.slice will normalize 0 to String.length, which we don't
+             * want, so we handle that case manually. Note that if norm_stop
+             * is 0, start must be 0. *)
+            Prim.Str ""
+          else
+            Prim.Str (String.slice s start norm_stop)
       end
   | Ast.Tuple expr_list -> Prim.Tuple (List.map expr_list ~f:(eval_expr env))
   | Ast.Captured_shellcall s ->

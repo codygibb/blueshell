@@ -22,6 +22,12 @@ val to_str : 'a t -> v_to_str:('a -> string) -> string
 
 val iter : 'a t -> f:('a -> unit) -> unit
 
+val norm_slice_exn : int -> int -> int -> int
+(* Awkward helper method which is used for both list and string slicing.
+ * `norm_slice_exn start stop len` normalizes the stop index and checks
+ * the bounds of the slice, raising Index_out_of_bounds or Invalid_slice
+ * if necessary. *)
+
 val slice : 'a t -> int -> int -> 'a t
 
 val to_list : 'a t -> 'a list
