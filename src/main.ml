@@ -55,7 +55,7 @@ let exec_err err file lnum =
   let line = nth_line file lnum in
   eprintf "File \"%s\", line %d:\n\n" file lnum;
   eprintf "  %s\n" line;
-  eprintf "\nError: %s\n" (Interpreter.get_err_msg err);
+  eprintf "\nError: %s\n" (Err.user_msg err);
   exit 1
 
 let () =

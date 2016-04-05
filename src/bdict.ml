@@ -14,9 +14,11 @@ let get dict k =
   | Some v -> v
   | None -> raise (Key_not_found k)
 
-let set = Hashtbl.set
+let set dict k v = Hashtbl.set dict k v
 
-let del = Hashtbl.remove
+let del dict k = Hashtbl.remove dict k
+
+let len dict = Hashtbl.length dict
 
 let to_str d ~v_to_str =
   let buf = Bigbuffer.create 32 in

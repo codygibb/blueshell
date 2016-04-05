@@ -1,0 +1,4 @@
+d := {'a': 5, 'b': 6, 'c': 7}
+d.del('a')
+print d
+d.del('a') # Shouldn't produce error if key isn't there

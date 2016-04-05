@@ -1,3 +1,3 @@
 true: use_menhir
-true: package(core,ppx_jane,re2,oUnit)
+true: package(core,ppx_jane,re2,oUnit,ppx_import)
 true: thread,debug
