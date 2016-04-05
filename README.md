@@ -71,7 +71,7 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `l[i] = x` Sets element at `i` to `x` in `l`.
 
-`l[start:stop]` **TODO** Returns a slice of `l`. See `str` slice for details.
+`l[start:stop]` Returns a slice of `l`. See `str` slice for details.
 
 `l.len()` Returns length of `l`.
 
