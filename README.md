@@ -113,24 +113,3 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 `f.write(s)` **TODO** Overwrites contents of `f` with string `s`.
 
 `f.append(s)` **TODO** Appends string `s` to the end of `f`.
-
-## Build
-
-Download the dependecies first:
-
-    $ apt-get install ocaml
-    $ apt-get install opam
-    $ opam install menhir
-    $ opam install core
-    $ opam install ppx_jane
-    $ opam install re2
-    $ opam install oUnit
-
-Make sure the tests pass:
-
-    $ ./run_tests.sh
-    
-To run arbitrary `.blu` files:
-
-    $ ./build.sh
-    $ ./main.byte test.blu
