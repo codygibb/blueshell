@@ -4,7 +4,7 @@ A lightweight shell scripting language
 
 <img src="assets/blueshell.png" width="200"> 
 
-Blueshell focuses on allowing the programmer to write better Bash scripts. Any Bash script can and should be instead written in Blueshell. 
+Blueshell (a working title) focuses on allowing the programmer to write better Bash scripts. Any Bash script can and should be instead written in Blueshell. 
 
 **But why?**
 
