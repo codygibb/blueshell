@@ -264,22 +264,14 @@ and eval_expr env = function
   | Ast.Call (e, arg_exprs) ->
       begin match eval_expr env e with
       | Prim.Closure (c_env, arg_ids, body) ->
-          (* TODO: use zip instead *)
-          let rec bind_args env = function
-            | [], [] -> ()
-            | (_ :: _, []) | ([], _ :: _) ->
-                raise (Violated_invariant "bind_args lists should be equal length")
-            | id :: ids, v :: vals ->
-                Env.bind env id v;
-                bind_args env (ids, vals)
-          in
-          let arg_vals = List.map arg_exprs ~f:(eval_expr env) in
-          let args_expected = List.length arg_ids in
-          let args_given = List.length arg_vals in
-          (if args_expected <> args_given then
-            raise (Exec_error (Incorrect_arg_num (args_expected, args_given))));
           let c_env' = Env.extend c_env in
-          bind_args c_env' (arg_ids, arg_vals);
+          let pairs = match List.zip arg_ids arg_exprs with
+          | Some l -> l
+          | None ->
+              raise (Exec_error (Incorrect_arg_num
+                (List.length arg_ids, List.length arg_exprs)));
+          in
+          (List.map pairs ~f:(fun (id, e) -> Env.bind c_env' id (eval_expr env e)));
           begin match exec_block c_env' body with
           | Step.Return v -> v
           | Step.Next -> Prim.Unit
