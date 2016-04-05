@@ -55,7 +55,7 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `s[i] = c` Sets character at `i` to `c` in `s`. The length of `c` must be 1.
 
-`s[start:stop]` **TODO** Returns a slice of `s` from index `start` (inclusive) to index `stop` (exclusive). If `start` or `stop` is omitted, then `0` and `s.len()` is used, respectively. The `stop` index is normalized, meaning `-1` evals to `s.len()-1`, `-2` evals to `s.len()-2`, etc.
+`s[start:stop]` Returns a slice of `s` from index `start` (inclusive) to index `stop` (exclusive). If `start` or `stop` is omitted, then `0` and `s.len()` is used, respectively. The `stop` index is normalized, meaning `-1` evals to `s.len()-1`, `-2` evals to `s.len()-2`, etc.
 
 `s.len()` Returns length of `s`.
 
