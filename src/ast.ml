@@ -26,6 +26,7 @@ and stmt =
   | While of expr * stmt_list
   | For of id * expr * stmt_list
   | Shellcall of string
+  | Try_shellcall of string
 
 and expr =
   | Int of int
@@ -49,7 +50,7 @@ and expr =
   | Slice of expr * expr option * expr option
   | Tuple of expr list
   | Captured_shellcall of string
-  | Try_shellcall of string
+  | Try_captured_shellcall of string
 
 and binop =
   | Add | Sub | Mult | Div | Mod

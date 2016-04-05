@@ -95,10 +95,11 @@ stmt:
   | x=ID; DEF; sc=SHELLCALL { Def (x, Captured_shellcall sc) }
   | x=ID; ASGN; sc=SHELLCALL { Asgn (x, Captured_shellcall sc) }
   | sc=SHELLCALL { Shellcall sc }
+  | TRY; sc=SHELLCALL { Try_shellcall sc }
   | out=ID; COMMA; err=ID; DEF; TRY; sc=SHELLCALL
-      { Multi_def ([out; err], Try_shellcall sc) }
+      { Multi_def ([out; err], Try_captured_shellcall sc) }
   | out=ID; COMMA; err=ID; ASGN; TRY; sc=SHELLCALL
-      { Multi_asgn ([out; err], Try_shellcall sc) }
+      { Multi_asgn ([out; err], Try_captured_shellcall sc) }
 
 eif_list:
   | ELSE; IF; e=expr; LBRACE; b=block; RBRACE; eif=eif_list

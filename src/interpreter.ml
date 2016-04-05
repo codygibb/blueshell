@@ -250,7 +250,7 @@ and eval_expr env = function
       | Result.Ok out -> Prim.Str out
       | Result.Error err -> raise (Exec_error (Captured_shellcall_failed (s, err)))
       end
-  | Ast.Try_shellcall s ->
+  | Ast.Try_captured_shellcall s ->
       let s = interpolate_shellcall env s in
       begin match Shell.capture_call s with
       | Result.Ok out -> Prim.Tuple [Prim.Str out; Prim.Int 0]
@@ -310,6 +310,7 @@ and exec_stmt env = function
           Step.Next
       | p -> raise (Exec_error (Incorrect_type ("unpack-asgn", p, "tuple")))
       end
+  (* TODO: For some reason, \n is not being printed correctly. *)
   | Ast.Print e -> (eval_expr env e) |> Prim.to_str |> print_endline; Step.Next
   | Ast.Return e -> Step.Return (eval_expr env e)
   | Ast.If_then_else (cond_e, true_b, false_b) ->
@@ -383,7 +384,10 @@ and exec_stmt env = function
             ("for", p, "list | func -> (prim, bool)")))
       end
   | Ast.Shellcall s ->
-      Shell.call (interpolate_shellcall env s);
+      Shell.call_exn (interpolate_shellcall env s);
+      Step.Next
+  | Ast.Try_shellcall s ->
+      let _ = Shell.call (interpolate_shellcall env s) in
       Step.Next
 
 and exec_block env sl =

@@ -1,0 +1,6 @@
+out, err := try $> ./test/integration/progs/shellcall/hello_exit.sh
+print out
+print err
+out, err = try $> ./test/integration/progs/shellcall/hello.sh
+print out
+print err

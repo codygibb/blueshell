@@ -24,10 +24,13 @@ let capture_call cmd =
       Result.Error (Signal
         (fd_to_str pinfo.stdout, fd_to_str pinfo.stderr, Signal.to_string signal))
 
-let call cmd =
+let call_exn cmd =
   match Unix.system cmd with
   | Ok _  -> ()
   | Error _ -> raise (Call_failed cmd)
+
+let call cmd =
+  Unix.system cmd
 
 let expand_path ?(getenv=Sys.getenv) s =
   let rec aux s =
