@@ -18,6 +18,8 @@ Some useful constructs allow direct and simple access to the shell:
 
 `out, err = try $> python might_fail.py` Try to run a command and capture its output. If the command exits non-zero, then the error code is also returned and the script does not exit.
 
+`try $> python might_fail.py` Similar to the above, except leaves stdout, stderr, and stdin connected to the terminal, and ignores the error code. Semantically, the standalone `try` is the same as any command in a Bash script.
+
 `$> echo "${'Hello, ' + 'world!'}" > ${file}.txt` Expressions can be injected into commands with `${E}`.
 
 `cd '~/dir' { ... }` Execute a block of code within a given directory.
