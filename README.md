@@ -61,7 +61,7 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `s.len()` Returns length of `s`.
 
-`s.split(delim)` Splits `s` according to delimiter str `delim` and returns list of substrings.
+`s.split(pattern)` Splits `s` according to regex string `pattern` and returns list of substrings.
 
 `s.replace(pattern, s2)` Replaces substrings in `s` matched by regex string `pattern` with string `s2`.
 

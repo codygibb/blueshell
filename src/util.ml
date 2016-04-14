@@ -6,3 +6,6 @@ let range ?(start=0) stop f  =
     end
   in
   aux start 
+
+let unescape s =
+  Scanf.sscanf ("\"" ^ s ^ "\"") "%S" (fun u -> u)

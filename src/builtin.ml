@@ -63,24 +63,16 @@ let str_methods = String.Map.of_alist_exn [
   ));
   ("split", (fun s args ->
     match args with
-    | [Prim.Str c] ->
-        let illegal_arg =
-          Exec_error (Illegal_argument "can only split on single character")
+    | [Prim.Str pattern] ->
+        let s = Util.unescape s in
+        let regex = match Re2.create pattern with
+        | Ok r -> r
+          (* TODO: More informative error message. *)
+        | Error _ -> raise (Exec_error (Illegal_argument "invalid regex"))
         in
-        let split on =
-          Prim.List (Blist.create
-            (List.map (String.split s ~on) ~f:(fun s -> Prim.Str s)))
-        in
-        begin match String.length c with
-        | 1 -> split (String.get c 0)
-        | 2 ->
-            begin match c with
-            | "\\n" -> split '\n'
-            | "\\t" -> split '\t'
-            | _ -> raise illegal_arg
-            end
-        | _ -> raise illegal_arg
-        end
+        Prim.List (Blist.create (List.map ~f:(fun s -> Prim.Str s) (
+          Re2.split regex s
+        )))
     | [p] ->
         raise (Exec_error (Incorrect_type ("str.split", p, "str")))
     | _ -> raise_arg_err args 1
@@ -101,6 +93,7 @@ let str_methods = String.Map.of_alist_exn [
   ("replace", (fun s args ->
     match args with
     | [Prim.Str pattern; Prim.Str s2] ->
+        let s = Util.unescape s in
         let regex = match Re2.create pattern with
         | Ok r -> r
           (* TODO: More informative error message. *)

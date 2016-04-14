@@ -26,7 +26,7 @@ let rec to_str = function
   | Int i -> string_of_int i
   | Bool b -> string_of_bool b
   | Float f -> Printf.sprintf "%f" f
-  | Str s -> s
+  | Str s -> Util.unescape s
   | Closure _ -> "<func>"
   | Builtin_method _ -> "<func>"
   | List l ->

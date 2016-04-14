@@ -1,0 +1,4 @@
+print "axbxc".split("x")
+print "axbyc".split("x|y")
+print "a   \t\n  \n  b    \t\t c".split("\s+")
+print "abc".split("x")
