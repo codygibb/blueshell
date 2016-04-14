@@ -65,7 +65,7 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `s.replace(pattern, s2)` Replaces substrings in `s` matched by regex string `pattern` with string `s2`.
 
-`s.fmt(d)` Returns new string with embedded formats of `{key}` in `s` replaced by corresponding value in dict `d`. Values will be automatically converted to strings. Example: `"Hello, {}! The number is {}.".fmt('Cody', 42)` returns `"Hello, Cody! The number is 42."`
+`s.fmt(...)` Returns new string with embedded formats of `"{}"` in `s` replaced by corresponding argument by position (`fmt` accepts variable number of arguments). Values will be automatically converted to strings. Example: `"Hello, {}! The number is {}.".fmt('Cody', 42)` returns `"Hello, Cody! The number is 42."`.
 
 #### list methods
 
