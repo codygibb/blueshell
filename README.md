@@ -63,7 +63,7 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `s.split(delim)` Splits `s` according to delimiter str `delim` and returns list of substrings.
 
-`s.replace(pattern, s2)` **TODO** Replaces substrings in `s` matched by regex string `pattern` with string `s2`.
+`s.replace(pattern, s2)` Replaces substrings in `s` matched by regex string `pattern` with string `s2`.
 
 `s.fmt(d)` Returns new string with embedded formats of `{key}` in `s` replaced by corresponding value in dict `d`. Values will be automatically converted to strings. Example: `"Hello, {}! The number is {}.".fmt('Cody', 42)` returns `"Hello, Cody! The number is 42."`
 
