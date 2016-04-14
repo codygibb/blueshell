@@ -45,6 +45,16 @@ Example:
 
 The above Blueshell script compiles the Blueshell interpreter and runs all of our basic integration tests, making sure all of the tests exit cleanly and produce expected output!
 
+## TODO list:
+
+- Tuple unpacking
+- Error objects
+- Change `print` to `println`, and then make `print` not output newlines.
+- `var` keyword, for declaring uninitialized variables. This would be useful for situations where you have `out := $> ...`, and then want to write `out, err = $> ...`, but must declare `err` first.
+- `nil` type
+- Instead of using `/bin/sh` for running shell commands, use `$SHELL`. This would allow zsh users to do zsh stuff.
+- HTTP support
+
 ## Built-in
 
 `argv` List of command line arguments, with the running file at index 0.
