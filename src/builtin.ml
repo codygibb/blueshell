@@ -50,7 +50,7 @@ let dict_methods = String.Map.of_alist_exn [
         Bdict.del bdict s;
         Prim.Unit
     | [p] ->
-        raise (Exec_error (Incorrect_type ("dict-del", p, "str")))
+        raise (Exec_error (Incorrect_type ("dict.del", p, "str")))
     | _ -> raise_arg_err args 1
   ));
 ]
@@ -81,6 +81,8 @@ let str_methods = String.Map.of_alist_exn [
             end
         | _ -> raise illegal_arg
         end
+    | [p] ->
+        raise (Exec_error (Incorrect_type ("str.split", p, "str")))
     | _ -> raise_arg_err args 1
   ));
   ("fmt", (fun s args ->
@@ -95,5 +97,20 @@ let str_methods = String.Map.of_alist_exn [
         Bigbuffer.add_string buf (Prim.to_str (Stream.next arg_stream));
     );
     Prim.Str (Bigbuffer.contents buf)
+  ));
+  ("replace", (fun s args ->
+    match args with
+    | [Prim.Str pattern; Prim.Str s2] ->
+        let regex = match Re2.create pattern with
+        | Ok r -> r
+          (* TODO: More informative error message. *)
+        | Error _ -> raise (Exec_error (Illegal_argument "invalid regex"))
+        in
+        Prim.Str (Re2.replace_exn regex s ~f:(fun m -> s2))
+    | [Prim.Str _; p] ->
+        raise (Exec_error (Incorrect_type ("str.replace", p, "str")))
+    | [p; _] ->
+        raise (Exec_error (Incorrect_type ("str.replace", p, "str")))
+    | _ -> raise_arg_err args 2
   ));
 ]

@@ -1,0 +1,3 @@
+print "Hello x, your name is x".replace("x", "Cody")
+print "a.b.cc.b.a".replace("[a-c]", "-")
+print "nothing to replace".replace("[x-z]+", "?")
