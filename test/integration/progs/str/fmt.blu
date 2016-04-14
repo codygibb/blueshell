@@ -1,0 +1,4 @@
+print "a: {}, b: {}, c: {}".fmt("A", 5, [1, 2, 3])
+print "too many curlies: {} {} {}".fmt("hi")
+print "not enough curlies: {} {}".fmt(1, 2, 3)
+print "no curlies".fmt(5, 6, 7)

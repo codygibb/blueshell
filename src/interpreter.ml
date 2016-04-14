@@ -68,8 +68,7 @@ and eval_expr env = function
       | Ast.Bool_cast, Prim.Str s -> Prim.Bool (bool_of_string s)
       | t, p -> raise (Exec_error (Invalid_cast (t, p)))
       end
-  | Ast.Typeof (e) ->
-      Prim.Str (Prim.type_str (eval_expr env e))
+  | Ast.Typeof e -> Prim.Str (Prim.type_str (eval_expr env e))
   | Ast.Bin_op (binop, e1, e2) ->
       begin match (eval_expr env e1), (eval_expr env e2) with
       | Prim.Int i1, Prim.Int i2 ->
@@ -170,9 +169,11 @@ and eval_expr env = function
           | Some l -> l
           | None ->
               raise (Exec_error (Incorrect_arg_num
-                (List.length arg_ids, List.length arg_exprs)));
+                (List.length arg_exprs, List.length arg_ids)));
           in
-          (List.iter pairs ~f:(fun (id, e) -> Env.bind c_env' id (eval_expr env e)));
+          (List.iter pairs ~f:(fun (id, e) ->
+            Env.bind c_env' id (eval_expr env e))
+          );
           begin match exec_block c_env' body with
           | Step.Return v -> v
           | Step.Next -> Prim.Unit
@@ -183,7 +184,9 @@ and eval_expr env = function
           | Prim.List l -> (Map.find_exn Builtin.list_methods mid) l args
           | Prim.Dict d -> (Map.find_exn Builtin.dict_methods mid) d args
           | Prim.Str s -> (Map.find_exn Builtin.str_methods mid) s args
-          | _ -> raise (Violated_invariant "should not be calling builtin method on non-builtin")
+          | _ ->
+              raise (Violated_invariant
+                "should not be calling builtin method on non-builtin")
           end
       | p -> raise (Exec_error (Incorrect_type ("func-call", p, "func")))
       end
@@ -197,17 +200,22 @@ and eval_expr env = function
       | Prim.List _ -> get_method Builtin.list_methods
       | Prim.Dict _ -> get_method Builtin.dict_methods
       | Prim.Str _ -> get_method Builtin.str_methods
-      | _ -> raise (Exec_error (Incorrect_type ("field-lookup", p, "object|list|dict")))
+      | _ ->
+          raise (Exec_error (Incorrect_type
+            ("field-lookup", p, "object|list|dict")))
       end
-  | Ast.List expr_list -> Prim.List (Blist.create (List.map expr_list ~f:(eval_expr env)))
+  | Ast.List expr_list ->
+      Prim.List (Blist.create (List.map expr_list ~f:(eval_expr env)))
   | Ast.Dict kv_list ->
-      Prim.Dict (Bdict.create (List.map kv_list ~f:(fun (k, v) -> (k, eval_expr env v))))
+      Prim.Dict (Bdict.create (
+        List.map kv_list ~f:(fun (k, v) -> (k, eval_expr env v))))
   | Ast.Get (e1, e2) ->
       begin match eval_expr env e1, eval_expr env e2 with
       | Prim.List l, Prim.Int i -> Blist.get l i
       | Prim.Dict d, Prim.Str s -> Bdict.get d s
       | Prim.Str s, Prim.Int i ->
-          if i < 0 || i >= String.length s then raise (Exec_error (Index_out_of_bounds i))
+          if i < 0 || i >= String.length s then
+            raise (Exec_error (Index_out_of_bounds i))
           else Prim.Str (Char.to_string (String.get s i))
       | p1, p2 ->
           raise (Exec_error (Incorrect_two_type
@@ -219,7 +227,8 @@ and eval_expr env = function
         | Some e ->
             begin match eval_expr env e with
             | Prim.Int i -> Some i
-            | p -> raise (Exec_error (Incorrect_type ("slice-index", p, "int")))
+            | p ->
+                raise (Exec_error (Incorrect_type ("slice-index", p, "int")))
             end
         | None -> None
       in
@@ -248,7 +257,8 @@ and eval_expr env = function
       let s = interpolate_shellcall env s in
       begin match Shell.capture_call s with
       | Result.Ok out -> Prim.Str out
-      | Result.Error err -> raise (Exec_error (Captured_shellcall_failed (s, err)))
+      | Result.Error err ->
+          raise (Exec_error (Captured_shellcall_failed (s, err)))
       end
   | Ast.Try_captured_shellcall s ->
       let s = interpolate_shellcall env s in
@@ -265,7 +275,7 @@ and unpack id_list tuple f =
   | Some l -> List.iter l ~f:f
   | None ->
       raise (Exec_error (Incorrect_arg_num
-        (List.length tuple, List.length id_list)))
+        (List.length id_list, List.length tuple)))
 
 and exec_stmt env = function
   | Ast.Expr e -> let _ = eval_expr env e in Step.Next
@@ -276,13 +286,17 @@ and exec_stmt env = function
       | _ -> ());
       begin match id with
       | "_" -> Step.Next
-      | _ -> Env.bind env id e'; Step.Next
+      | _ ->
+          Env.bind env id e';
+          Step.Next
       end
   | Ast.Asgn (id, e) ->
       let e' = eval_expr env e in
       begin match id with
       | "_" -> Step.Next
-      | _ -> Env.update env id e'; Step.Next
+      | _ ->
+          Env.update env id e';
+          Step.Next
       end
   | Ast.Multi_def (id_list, e) ->
       begin match eval_expr env e with
@@ -311,11 +325,14 @@ and exec_stmt env = function
       | p -> raise (Exec_error (Incorrect_type ("unpack-asgn", p, "tuple")))
       end
   (* TODO: For some reason, \n is not being printed correctly. *)
-  | Ast.Print e -> (eval_expr env e) |> Prim.to_str |> print_endline; Step.Next
+  | Ast.Print e ->
+      (eval_expr env e) |> Prim.to_str |> print_endline;
+      Step.Next
   | Ast.Return e -> Step.Return (eval_expr env e)
   | Ast.If_then_else (cond_e, true_b, false_b) ->
       begin match eval_expr env cond_e with
-      | Prim.Bool b -> exec_block (Env.extend env) (if b then true_b else false_b)
+      | Prim.Bool b ->
+          exec_block (Env.extend env) (if b then true_b else false_b)
       | p -> raise (Exec_error (Incorrect_type ("if", p, "bool")))
       end
   | Ast.Set (e1, e2, e3) ->
@@ -331,15 +348,18 @@ and exec_stmt env = function
       | Prim.Str s ->
           let old_dir = Sys.getcwd () in
           (try Unix.chdir (Shell.expand_path s)
-           with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found s)));
-          (try
-            exec_block (Env.extend env) block;
+           with Unix.Unix_error _ ->
+             raise (Exec_error (Dir_not_found s)));
+          let cleanup () =
             (try Unix.chdir old_dir
-             with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found old_dir)))
+             with Unix.Unix_error _ ->
+               raise (Exec_error (Dir_not_found old_dir)))
+          in
+          (try exec_block (Env.extend env) block;
            with e ->
-            (try Unix.chdir old_dir
-             with Unix.Unix_error _ -> raise (Exec_error (Dir_not_found old_dir)));
-            raise e);
+             cleanup ();
+             raise e);
+          cleanup ();
           Step.Next
       | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
       end
@@ -368,7 +388,9 @@ and exec_stmt env = function
                   let _ = exec_block env' stmt_list in
                   aux()
                 else Step.Next
-            | p -> raise (Exec_error (Incorrect_type ("iter", p, "(prim, bool)")))
+            | p ->
+                raise (Exec_error (Incorrect_type
+                  ("iter", p, "(prim, bool)")))
           in
           aux ()
       | Prim.List l ->
@@ -390,33 +412,33 @@ and exec_stmt env = function
       let _ = Shell.call (interpolate_shellcall env s) in
       Step.Next
 
-and exec_block env sl =
+and exec_block env stmt_list =
   let env' = Env.extend env in
-  let rec step sl =
-    let aux s sl' =
+  let rec step stmt_list =
+    let aux s stmt_list =
       match exec_stmt env' s with
-      | Step.Next -> step sl'
+      | Step.Next -> step stmt_list
       | Step.Return v -> Step.Return v
     in
-    match sl with
+    match stmt_list with
     | [] -> Step.Next
-    | (lnum, s) :: sl' -> track_exn lnum (fun () -> aux s sl')
+    | (lnum, s) :: stmt_list' -> track_exn lnum (fun () -> aux s stmt_list')
   in
-  step sl
+  step stmt_list
 
-and exec_prog sl argv =
+and exec_prog stmt_list argv =
   let env = Env.create () in
   Env.bind env "argv"
     (Prim.List (Blist.create (List.map argv ~f:(fun s -> Prim.Str s))));
   let rec step = function
     | [] -> ()
-    | (lnum, s) :: sl' ->
+    | (lnum, s) :: stmt_list' ->
         track_exn lnum (fun () ->
           match exec_stmt env s with
-          | Step.Next -> step sl'
+          | Step.Next -> step stmt_list'
           | Step.Return _ -> raise (Exec_error Return_from_main))
   in
-  step sl
+  step stmt_list
 
 let get_lexbuf file =
   let lexbuf = file |> open_in |> Lexing.from_channel in

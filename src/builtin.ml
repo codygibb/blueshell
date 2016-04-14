@@ -1,5 +1,6 @@
 open Core.Std
 open Printf
+module Re2 = Re2.Std.Re2
 
 type err = [%import: Err.t]
 
@@ -7,7 +8,10 @@ exception Exec_error = Err.Exec_error
 
 let raise_arg_err args num_exp =
   raise (Exec_error (Incorrect_arg_num
-    (List.length args, num_exp)))
+    (num_exp, List.length args)))
+
+(* By using Maps, we can (1) check that a built-in method exists,
+ * and (2) dispatch the associated code. *)
 
 let list_methods = String.Map.of_alist_exn [
   ("push", (fun blist args ->
@@ -78,5 +82,18 @@ let str_methods = String.Map.of_alist_exn [
         | _ -> raise illegal_arg
         end
     | _ -> raise_arg_err args 1
+  ));
+  ("fmt", (fun s args ->
+    (* "fmt" intentionally uses variable number of arguments. *)
+    let buf = Bigbuffer.create(32) in
+    let parts = Re2.split ~max:(List.length args) (Re2.create_exn "\{\}") s in
+    let parts_len = (List.length parts) in
+    let arg_stream = Stream.of_list args in
+    List.iteri parts ~f:(fun i s ->
+      Bigbuffer.add_string buf s;
+      if i < parts_len - 1 then
+        Bigbuffer.add_string buf (Prim.to_str (Stream.next arg_stream));
+    );
+    Prim.Str (Bigbuffer.contents buf)
   ));
 ]

@@ -23,7 +23,7 @@ let suite =
         ((Option.value_exn (getenv "HOME")) ^ "/foo")
         (expand_path "~/foo");
 
-      assert_equal ~printer:(fun s -> s)
+      assert_equal
         ((Option.value_exn (getenv "GOPATH")) ^ "/../ocaml")
         (expand_path "$GOPATH/../ocaml");
 

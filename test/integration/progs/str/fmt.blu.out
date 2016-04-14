@@ -1,0 +1,4 @@
+a: A, b: 5, c: [1, 2, 3]
+too many curlies: hi {} {}
+not enough curlies: 1 2
+no curlies

@@ -1,14 +1,5 @@
 type id = string
 
-(* TODO: Each statement and expression operator will have a
- * line number attached by the parser, such that any exec
- * errors that occur on said operator will know the exact
- * line number. This will be done by wrapping stmt and expr
- * with tagged_stmt and tagged_expr, which factor out line
- * number tracking out of the business logic of the already
- * existing stmt/expr evaluation.
- * *)
-
 (* Each statement is tagged with a line number. *)
 type stmt_list = (int * stmt) list
 

@@ -1,8 +1,6 @@
 open Core.Std
 open Printf
 
-(* TODO: move in_channels to Core.Std *)
-
 let usage () =
   printf "Usage: %s [filename] [args]\n" Sys.argv.(0);
   exit 1
