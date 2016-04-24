@@ -47,7 +47,6 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 ## TODO list:
 
-- Tuple unpacking
 - Error objects
 - Change `print` to `println`, and then make `print` not output newlines.
 - `var` keyword, for declaring uninitialized variables. This would be useful for situations where you have `out := $> ...`, and then want to write `out, err = $> ...`, but must declare `err` first.
