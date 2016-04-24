@@ -77,8 +77,9 @@ stmt_list:
 stmt:
   | e=expr { Expr e }
   | x=ID; DEF; e=expr { Def (x, e) }
-  | xs=id_list; DEF; e=expr { Multi_def (xs, e) }
   | x=ID; ASGN; e=expr { Asgn (x, e) }
+  | xs=id_list; DEF; e=expr { Multi_def (xs, e) }
+  | xs=id_list; ASGN; e=expr { Multi_asgn (xs, e) }
   | FUNC; f=ID; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE
       { Def (f, Func (l, b)) }
   | PRINT; e=expr { Print e }

@@ -2,7 +2,16 @@ func f() {
 	return (1, 2, 3)
 }
 
+func g() {
+	return (4, 5, 6)
+}
+
 a, b, c := f()
+print a
+print b
+print c
+
+a, b, c = g()
 print a
 print b
 print c
