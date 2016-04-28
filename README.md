@@ -51,7 +51,6 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 - Change `print` to `println`, and then make `print` not output newlines.
 - `var` keyword, for declaring uninitialized variables. This would be useful for situations where you have `out := $> ...`, and then want to write `out, err = $> ...`, but must declare `err` first.
 - `nil` type
-- Instead of using `/bin/sh` for running shell commands, use `$SHELL`. This would allow zsh users to do zsh stuff.
 - HTTP support
 
 ## Built-in
