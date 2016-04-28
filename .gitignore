@@ -20,3 +20,6 @@ setup.data
 setup.log
 
 *.swp
+tags
+
+test.blu
