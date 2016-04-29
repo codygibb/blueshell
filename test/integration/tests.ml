@@ -37,9 +37,9 @@ let _  =
   let skipped = ref 0 in
   walk test_progs (fun infile ->
     if Filename.check_suffix infile ".blu" then begin
-      printf "%s ... " infile;
+      eprintf "%s ... " infile;
       if String.is_prefix (read infile) ~prefix:"#skip\n" then begin
-        printf "Skipped\n";
+        eprintf "Skipped\n";
         skipped := !skipped + 1;
       end else begin
         flush stdout;
@@ -52,12 +52,16 @@ let _  =
         (* Re-direct stdout to actual_outfile. *)
         Unix.dup2 (Unix.descr_of_out_channel actual_oc) Unix.stdout;
 
+        let syntax_err = ref false in
+        let lexbuf = Interpreter.get_lexbuf infile in
         Unix.mkdir ".tmp";
         begin
-          try Interpreter.run (Interpreter.get_lexbuf infile) [infile]
+          try Interpreter.run lexbuf [infile]
           with
           | Interpreter.Tracked_exec_error (lnum, err) ->
               printf "error@%d: %s\n" lnum (Err.test_str err)
+          | Lexer.Error | Parser.Error ->
+              syntax_err := true;
         end;
         rm_tmp ();
 
@@ -70,17 +74,22 @@ let _  =
         let expected = read outfile in
         let actual = read actual_outfile in 
         if expected = actual then begin
-          printf "Passed!\n";
+          eprintf "Passed!\n";
           passed := !passed + 1;
         end else begin
-          printf "Failed\n";
-          printf "Expected output:\n%s\n" expected;
-          printf "--------\n";
-          printf "Actual output:\n%s\n" actual;
-          printf "========\n";
-          failed := !failed + 1
+          eprintf "Failed\n";
+          if !syntax_err then begin
+            Logger.log_syntax_err lexbuf;
+          end else begin
+            eprintf "Expected output:\n%s\n" expected;
+            eprintf "--------\n";
+            eprintf "Actual output:\n%s\n" actual;
+            eprintf "========\n";
+          end;
+          failed := !failed + 1;
         end
       end
-    end
+    end;
+    flush stderr
   );
   printf "Passed: %d, Failed: %d, Skipped %d\n" !passed !failed !skipped

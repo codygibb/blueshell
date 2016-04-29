@@ -1,0 +1,11 @@
+func f() {
+	return (1, 2)
+}
+
+x := 5
+
+var y
+x, y = (1, 2)
+
+print x
+print y

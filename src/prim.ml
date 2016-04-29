@@ -2,7 +2,7 @@ open Core.Std
 open Printf
 
 type t = 
-  | Unit
+  | Nil
   | Int of int
   | Bool of bool
   | Float of float
@@ -22,7 +22,7 @@ let tuple_to_str t v_to_str =
   ))
 
 let rec to_str = function
-  | Unit -> "()"
+  | Nil -> "nil"
   | Int i -> string_of_int i
   | Bool b -> string_of_bool b
   | Float f -> Printf.sprintf "%f" f
@@ -42,7 +42,7 @@ let rec to_str = function
   | Tuple t -> tuple_to_str t to_str
 
 let rec type_str = function
-  | Unit -> "unit"
+  | Nil -> "nil"
   | Int _ -> "int"
   | Bool _ -> "bool"
   | Float _ -> "float"

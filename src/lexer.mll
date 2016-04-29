@@ -38,6 +38,7 @@ rule read = parse
   | "cd" { CD }
   | "for" { FOR }
   | "while" { WHILE }
+  | "nil" { NIL }
   | "bool" { BOOLCAST }
   | "int" { INTCAST }
   | "float" { FLOATCAST }
@@ -45,6 +46,7 @@ rule read = parse
   | "typeof" { TYPEOF }
   | "in" { IN }
   | "try" { TRY }
+  | "var" { VAR }
   | shellcall
     { let s = lexeme lexbuf in
       SHELLCALL (String.slice s 2 (String.length s)) }

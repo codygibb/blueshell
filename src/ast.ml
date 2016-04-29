@@ -20,6 +20,7 @@ and stmt =
   | Try_shellcall of string
 
 and expr =
+  | Nil
   | Int of int
   | Bool of bool
   | Float of float

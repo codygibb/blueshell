@@ -5,6 +5,8 @@ d := true
 e := func(x) { x + 1 }
 f := [1, 2, 3]
 g := {"Hello": "world"}
+h := nil
+var i
 
 print typeof func(){}()
 print typeof a
@@ -14,3 +16,5 @@ print typeof d
 print typeof e
 print typeof f
 print typeof g
+print typeof h
+print typeof i

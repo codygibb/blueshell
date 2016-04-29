@@ -1,8 +1,10 @@
 %{
+  open Core.Std
   open Ast 
   open Lexing
 %}
 
+%token NIL
 %token <int> INT
 %token <bool> BOOL
 %token <float> FLOAT
@@ -29,6 +31,7 @@
 %token WHILE
 %token FOR
 %token IN
+%token VAR
 %token COMMA
 %token COLON
 %token SEMICOLON
@@ -78,8 +81,9 @@ stmt:
   | e=expr { Expr e }
   | x=ID; DEF; e=expr { Def (x, e) }
   | x=ID; ASGN; e=expr { Asgn (x, e) }
-  | xs=id_list; DEF; e=expr { Multi_def (xs, e) }
-  | xs=id_list; ASGN; e=expr { Multi_asgn (xs, e) }
+  | xs=nonempty_id_list; DEF; e=expr { Multi_def (xs, e) }
+  | xs=nonempty_id_list; ASGN; e=expr { Multi_asgn (xs, e) }
+  | VAR; x=ID { Def (x, Nil) }
   | FUNC; f=ID; LPAREN; l=id_list; RPAREN; LBRACE; b=block; RBRACE
       { Def (f, Func (l, b)) }
   | PRINT; e=expr { Print e }
@@ -98,10 +102,10 @@ stmt:
   | x=ID; ASGN; sc=SHELLCALL { Asgn (x, Captured_shellcall sc) }
   | sc=SHELLCALL { Shellcall sc }
   | TRY; sc=SHELLCALL { Try_shellcall sc }
-  | out=ID; COMMA; err=ID; DEF; TRY; sc=SHELLCALL
-      { Multi_def ([out; err], Try_captured_shellcall sc) }
-  | out=ID; COMMA; err=ID; ASGN; TRY; sc=SHELLCALL
-      { Multi_asgn ([out; err], Try_captured_shellcall sc) }
+  | xs=nonempty_id_list; DEF; TRY; sc=SHELLCALL
+      { Multi_def (xs, Try_captured_shellcall sc) }
+  | xs=nonempty_id_list; ASGN; TRY; sc=SHELLCALL
+      { Multi_asgn (xs, Try_captured_shellcall sc) }
 
 eif_list:
   | ELSE; IF; e=expr; LBRACE; b=block; RBRACE; eif=eif_list
@@ -116,6 +120,7 @@ block:
   | sl=stmt_list { sl }
 
 expr:
+  | NIL { Nil }
   | i=INT { Int i }
   | b=BOOL { Bool b }
   | f=FLOAT { Float f }
@@ -183,7 +188,7 @@ id_list:
 
 nonempty_id_list:
   | x=ID { [x] }
-  | x=ID; COMMA; l=id_list { x :: l }
+  | x=ID; COMMA; l=nonempty_id_list { x :: l }
 
 expr_list:
   | l=nonempty_expr_list { l }
@@ -191,7 +196,7 @@ expr_list:
 
 nonempty_expr_list:
   | e=expr { [e] }
-  | e=expr; COMMA; l=expr_list { e :: l }
+  | e=expr; COMMA; l=nonempty_expr_list { e :: l }
 
 kv_list:
   | l=nonempty_kv_list { l }
@@ -199,7 +204,7 @@ kv_list:
 
 nonempty_kv_list:
   | kv=key_val { [kv] }
-  | kv=key_val; COMMA; l=kv_list { kv :: l }
+  | kv=key_val; COMMA; l=nonempty_kv_list { kv :: l }
 
 key_val:
   | k=STR; COLON; v=expr { (k, v) }

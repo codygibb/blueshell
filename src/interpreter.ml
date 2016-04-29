@@ -48,6 +48,7 @@ let rec interpolate_shellcall env s =
   )
 
 and eval_expr env = function
+  | Ast.Nil -> Prim.Nil
   | Ast.Int i -> Prim.Int i
   | Ast.Bool b -> Prim.Bool b
   | Ast.Float f -> Prim.Float f
@@ -176,7 +177,7 @@ and eval_expr env = function
           );
           begin match exec_block c_env' body with
           | Step.Return v -> v
-          | Step.Next -> Prim.Unit
+          | Step.Next -> Prim.Nil
           end
       | Prim.Builtin_method (p, mid) ->
           let args = List.map arg_exprs ~f:(eval_expr env) in
@@ -310,7 +311,12 @@ and exec_stmt env = function
             end
           );
           Step.Next
-      | p -> raise (Exec_error (Incorrect_type ("unpack-def", p, "tuple")))
+      | p ->
+          begin match id_list with
+          | [id] -> Env.bind env id p
+          | _ -> raise (Exec_error (Incorrect_type ("def", p, "tuple")))
+          end;
+          Step.Next
       end
   | Ast.Multi_asgn (id_list, e) ->
       begin match eval_expr env e with
@@ -322,7 +328,12 @@ and exec_stmt env = function
             end
           );
           Step.Next
-      | p -> raise (Exec_error (Incorrect_type ("unpack-asgn", p, "tuple")))
+      | p -> raise (Exec_error (Incorrect_type ("asgn", p, "tuple")))
+          begin match id_list with
+          | [id] -> Env.update env id p
+          | _ -> raise (Exec_error (Incorrect_type ("def", p, "tuple")))
+          end;
+          Step.Next
       end
   (* TODO: For some reason, \n is not being printed correctly. *)
   | Ast.Print e ->

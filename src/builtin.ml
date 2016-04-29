@@ -18,7 +18,7 @@ let list_methods = String.Map.of_alist_exn [
     match args with
     | [p] ->
         Blist.push blist p;
-        Prim.Unit
+        Prim.Nil
     | _ -> raise_arg_err args 1
   ));
   ("pop", (fun blist args ->
@@ -48,7 +48,7 @@ let dict_methods = String.Map.of_alist_exn [
     match args with
     | [Prim.Str s] ->
         Bdict.del bdict s;
-        Prim.Unit
+        Prim.Nil
     | [p] ->
         raise (Exec_error (Incorrect_type ("dict.del", p, "str")))
     | _ -> raise_arg_err args 1
