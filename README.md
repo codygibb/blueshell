@@ -55,7 +55,11 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 
 `argv` List of command line arguments, with the running file at index 0.
 
-`max(n1, n2)` **TODO** Returns max of `n1` and `n2`, which can be either floats or ints.
+`max(n1, n2)` Returns max of `n1` and `n2`, which can be either floats or ints.
+
+`typeof(x)` Returns type string of variable `x`.
+
+`open(filepath)` **TODO** Returns open file object for file at `filepath`.
 
 #### str methods
 

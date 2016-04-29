@@ -19,6 +19,16 @@ let funcs = String.Map.of_alist_exn [
     | [p] -> Prim.Str (Prim.type_str p)
     | _ -> raise_arg_err args 1
   ));
+  ("max", Prim.Builtin_func (fun args ->
+    match args with
+    | [Prim.Int i1; Prim.Int i2] -> Prim.Int (max i1 i2)
+    | [Prim.Float f1; Prim.Float f2] -> Prim.Float (max f1 f2)
+    | [Prim.Int _; p] ->
+        raise (Exec_error (Incorrect_type ("max", p, "int")))
+    | [Prim.Float _; p] ->
+        raise (Exec_error (Incorrect_type ("max", p, "float")))
+    | _ -> raise_arg_err args 2
+  ));
 ]
 
 let list_methods = String.Map.of_alist_exn [
