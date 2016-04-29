@@ -26,7 +26,6 @@ and expr =
   | Float of float
   | Str of string
   | Cast of type_cast * expr
-  | Typeof of expr
   | Id of id
   | Bin_op of binop * expr * expr
   | Not of expr

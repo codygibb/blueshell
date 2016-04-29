@@ -50,7 +50,6 @@ The above Blueshell script compiles the Blueshell interpreter and runs all of ou
 - Error objects
 - Change `print` to `println`, and then make `print` not output newlines.
 - HTTP support
-- Change `typeof` from keyword to builtin function.
 
 ## Built-in
 

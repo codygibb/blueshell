@@ -69,7 +69,6 @@ and eval_expr env = function
       | Ast.Bool_cast, Prim.Str s -> Prim.Bool (bool_of_string s)
       | t, p -> raise (Exec_error (Invalid_cast (t, p)))
       end
-  | Ast.Typeof e -> Prim.Str (Prim.type_str (eval_expr env e))
   | Ast.Bin_op (binop, e1, e2) ->
       begin match (eval_expr env e1), (eval_expr env e2) with
       | Prim.Int i1, Prim.Int i2 ->
@@ -189,6 +188,7 @@ and eval_expr env = function
               raise (Violated_invariant
                 "should not be calling builtin method on non-builtin")
           end
+      | Prim.Builtin_func f -> f (List.map arg_exprs ~f:(eval_expr env))
       | p -> raise (Exec_error (Incorrect_type ("func-call", p, "func")))
       end
   | Ast.Field_lookup (e, id) ->
@@ -326,15 +326,14 @@ and exec_stmt env = function
             | "_" -> ()
             | _ -> Env.update env id p
             end
-          );
-          Step.Next
-      | p -> raise (Exec_error (Incorrect_type ("asgn", p, "tuple")))
+          )
+      | p ->
           begin match id_list with
           | [id] -> Env.update env id p
           | _ -> raise (Exec_error (Incorrect_type ("def", p, "tuple")))
-          end;
-          Step.Next
-      end
+          end
+      end;
+      Step.Next
   (* TODO: For some reason, \n is not being printed correctly. *)
   | Ast.Print e ->
       (eval_expr env e) |> Prim.to_str |> print_endline;
@@ -358,18 +357,24 @@ and exec_stmt env = function
       begin match eval_expr env dir_e with
       | Prim.Str s ->
           let old_dir = Sys.getcwd () in
-          (try Unix.chdir (Shell.expand_path s)
-           with Unix.Unix_error _ ->
-             raise (Exec_error (Dir_not_found s)));
+          begin try Unix.chdir (Shell.expand_path s)
+            with Unix.Unix_error _ ->
+              raise (Exec_error (Dir_not_found s))
+          end;
           let cleanup () =
             (try Unix.chdir old_dir
              with Unix.Unix_error _ ->
                raise (Exec_error (Dir_not_found old_dir)))
           in
-          (try exec_block (Env.extend env) block;
-           with e ->
-             cleanup ();
-             raise e);
+          begin try
+            let _ = exec_block (Env.extend env) block in
+            ()
+          with e ->
+            begin
+              cleanup ();
+              raise e
+            end;
+          end;
           cleanup ();
           Step.Next
       | p -> raise (Exec_error (Incorrect_type ("cd", p, "str")))
@@ -439,8 +444,10 @@ and exec_block env stmt_list =
 
 and exec_prog stmt_list argv =
   let env = Env.create () in
+  (* Bind top-level builtin identifiers. *)
   Env.bind env "argv"
     (Prim.List (Blist.create (List.map argv ~f:(fun s -> Prim.Str s))));
+  (Map.iteri Builtin.funcs ~f:(fun ~key:id ~data:f -> Env.bind env id f));
   let rec step = function
     | [] -> ()
     | (lnum, s) :: stmt_list' ->

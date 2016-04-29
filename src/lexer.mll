@@ -43,7 +43,6 @@ rule read = parse
   | "int" { INTCAST }
   | "float" { FLOATCAST }
   | "str" { STRCAST }
-  | "typeof" { TYPEOF }
   | "in" { IN }
   | "try" { TRY }
   | "var" { VAR }

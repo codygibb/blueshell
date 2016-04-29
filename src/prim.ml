@@ -8,7 +8,10 @@ type t =
   | Float of float
   | Str of string
   | Closure of (t Env.t * Ast.id list * Ast.stmt_list)
+    (* Object primitive and method name. *)
   | Builtin_method of t * Ast.id
+    (* Takes an argument list and returns a primitive. *)
+  | Builtin_func of (t list -> t)
   | List of t Blist.t
   | Dict of t Bdict.t
   | Tuple of t list
@@ -29,6 +32,7 @@ let rec to_str = function
   | Str s -> Util.unescape s
   | Closure _ -> "<func>"
   | Builtin_method _ -> "<func>"
+  | Builtin_func _ -> "<func>"
   | List l ->
       Blist.to_str l ~v_to_str:(fun p ->
         match p with
@@ -49,6 +53,7 @@ let rec type_str = function
   | Str _ -> "str"
   | Closure _ -> "func"
   | Builtin_method _ -> "func"
+  | Builtin_func _ -> "func"
   | List _ -> "list"
   | Dict _ -> "dict"
   | Tuple t -> tuple_to_str t type_str

@@ -1,20 +1,24 @@
-a := 2
-b := "hello"
-c := 23.13
-d := true
-e := func(x) { x + 1 }
-f := [1, 2, 3]
-g := {"Hello": "world"}
-h := nil
-var i
+print typeof(2)
 
-print typeof func(){}()
-print typeof a
-print typeof b
-print typeof c
-print typeof d
-print typeof e
-print typeof f
-print typeof g
-print typeof h
-print typeof i
+print typeof(23.13)
+
+print typeof(true)
+
+print typeof("hello")
+
+print typeof([1, 2, 3])
+
+print typeof({"key": "val"})
+
+print typeof(func(x) { x + 1 })
+
+print typeof([1, 2, 3].push)
+
+print typeof(typeof)
+
+print typeof(nil)
+
+var i
+print typeof(i)
+
+print typeof(func(){}())

@@ -1,10 +1,12 @@
-nil
 int
-str
 float
 bool
-func
+str
 list
 dict
+func
+func
+func
+nil
 nil
 nil

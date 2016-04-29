@@ -13,6 +13,14 @@ let raise_arg_err args num_exp =
 (* By using Maps, we can (1) check that a built-in method exists,
  * and (2) dispatch the associated code. *)
 
+let funcs = String.Map.of_alist_exn [
+  ("typeof", Prim.Builtin_func (fun args ->
+    match args with
+    | [p] -> Prim.Str (Prim.type_str p)
+    | _ -> raise_arg_err args 1
+  ));
+]
+
 let list_methods = String.Map.of_alist_exn [
   ("push", (fun blist args ->
     match args with
